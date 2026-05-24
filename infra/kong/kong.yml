@@ -1,0 +1,63 @@
+_format_version: '3.0'
+_transform: true
+
+services:
+  - name: api
+    url: http://api:8000
+    routes:
+      - name: health
+        paths:
+          - /api/v1/health
+        strip_path: false
+      - name: products
+        paths:
+          - /api/v1/products
+        strip_path: false
+      - name: orders
+        paths:
+          - /api/v1/orders
+        strip_path: false
+      - name: users
+        paths:
+          - /api/v1/users
+        strip_path: false
+
+plugins:
+  - name: rate-limiting
+    service: api
+    config:
+      minute: 100
+      policy: local
+      limit_by: ip
+  - name: file-log
+    service: api
+    config:
+      path: /dev/stdout
+  - name: cors
+    service: api
+    config:
+      origins:
+        - http://localhost:3000
+        - http://localhost:3001
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+      exposed_headers:
+        - Content-Length
+      credentials: true
+      max_age: 3600
+  - name: jwt
+    route: users
+    config:
+      key_claim_name: iss
+  - name: jwt
+    route: orders
+    config:
+      key_claim_name: iss

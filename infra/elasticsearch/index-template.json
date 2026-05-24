@@ -1,0 +1,19 @@
+{
+  "index_patterns": ["products-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "properties": {
+        "name": { "type": "text", "fields": { "keyword": { "type": "keyword" } } },
+        "brand": { "type": "keyword" },
+        "category": { "type": "keyword" },
+        "price": { "type": "double" },
+        "is_in_stock": { "type": "boolean" },
+        "specs": { "type": "object", "enabled": true }
+      }
+    }
+  }
+}

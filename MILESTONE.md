@@ -4,45 +4,49 @@
 
 ## Project Timeline Overview
 
-| Phase | Focus |
-|---|---|
-| **Phase 0** — Foundation | Infra setup, repo, CI/CD |
-| **Phase 1** — Core Backend | Auth, Products, Categories |
-| **Phase 2** — Inventory & Search | Inventory, Elasticsearch |
-| **Phase 3** — Cart & Orders | Cart, Checkout, Orders |
-| **Phase 4** — Payments | bKash, SSLCOMMERZ, COD |
-| **Phase 5** — Delivery & Notifications | Courier API, SMS/Email |
-| **Phase 6** — PC Builder | Compatibility engine |
-| **Phase 7** — Frontend Web | Next.js storefront |
-| **Phase 8** — Admin Dashboard | Admin panel |
-| **Phase 9** — Mobile App | React Native app |
-| **Phase 10** — Analytics & Offers | Reports, Promos |
-| **Phase 11** — QA & Hardening | Testing, security |
-| **Phase 12** — Launch | Production rollout |
+| Phase                                  | Focus                      |
+| -------------------------------------- | -------------------------- |
+| **Phase 0** — Foundation               | Infra setup, repo, CI/CD   |
+| **Phase 1** — Core Backend             | Auth, Products, Categories |
+| **Phase 2** — Inventory & Search       | Inventory, Elasticsearch   |
+| **Phase 3** — Cart & Orders            | Cart, Checkout, Orders     |
+| **Phase 4** — Payments                 | bKash, SSLCOMMERZ, COD     |
+| **Phase 5** — Delivery & Notifications | Courier API, SMS/Email     |
+| **Phase 6** — PC Builder               | Compatibility engine       |
+| **Phase 7** — Frontend Web             | Next.js storefront         |
+| **Phase 8** — Admin Dashboard          | Admin panel                |
+| **Phase 9** — Mobile App               | React Native app           |
+| **Phase 10** — Analytics & Offers      | Reports, Promos            |
+| **Phase 11** — QA & Hardening          | Testing, security          |
+| **Phase 12** — Launch                  | Production rollout         |
 
 **Total estimated duration: ~34 weeks (~8.5 months)**
 
 ---
 
 # PHASE 0 — Foundation & Infrastructure
+
 ---
 
 ## Milestone 0.1 — Repository & Project Structure Setup
 
 ### Goal
+
 Establish a clean monorepo structure that all developers can clone and run locally within 30 minutes.
 
 ### Tasks
+
 - [ ] Create GitHub organisation and main repository
-- [ ] Set up monorepo structure (apps/web, apps/admin, apps/mobile, services/*)
-- [ ] Add root-level `docker-compose.yml` (Postgres, Redis, Elasticsearch, RabbitMQ)
+- [ ] Set up monorepo structure (apps/web, apps/admin, apps/mobile, services/\*)
+- [ ] Add root-level `docker-compose.yml` (python, FastApi, Postgres, Redis, Elasticsearch, RabbitMQ)
 - [ ] Add `.env.example` with all required environment variables
 - [ ] Create shared `packages/` for common types, utils, and constants
-- [ ] Write `CONTRIBUTING.md` with branching strategy (main / develop / feature/*)
+- [ ] Write `CONTRIBUTING.md` with branching strategy (main / develop / feature/\*)
 - [ ] Set up ESLint + Prettier + Husky pre-commit hooks
 - [ ] Configure TypeScript `tsconfig.json` base config shared across services
 
 ### Acceptance Criteria
+
 - [ ] Any developer can run `docker compose up` and get all infra services running
 - [ ] Linting and formatting pass on empty project
 - [ ] README has local setup instructions
@@ -52,9 +56,11 @@ Establish a clean monorepo structure that all developers can clone and run local
 ## Milestone 0.2 — CI/CD Pipeline
 
 ### Goal
+
 Every push triggers automated test + build. Main branch deployments are automated to staging.
 
 ### Tasks
+
 - [ ] Set up GitHub Actions workflow: `lint → test → build`
 - [ ] Configure Docker image build and push to AWS ECR
 - [ ] Set up staging environment on Kubernetes (EKS or local kind cluster)
@@ -63,6 +69,7 @@ Every push triggers automated test + build. Main branch deployments are automate
 - [ ] Set up branch protection rules on `main` and `develop`
 
 ### Acceptance Criteria
+
 - [ ] Push to any branch triggers lint + test
 - [ ] Merge to `develop` auto-deploys to staging
 - [ ] Failed builds block PRs from merging
@@ -72,9 +79,11 @@ Every push triggers automated test + build. Main branch deployments are automate
 ## Milestone 0.3 — Database Setup & Base Migrations
 
 ### Goal
+
 PostgreSQL running with migration tooling in place. Base schema created and seeded.
 
 ### Tasks
+
 - [ ] Set up PostgreSQL 16 with connection pooling (PgBouncer)
 - [ ] Integrate migration tool (e.g. `db-migrate` or `Prisma migrate`)
 - [ ] Create initial migration: `users`, `roles`, `branches` tables
@@ -84,6 +93,7 @@ PostgreSQL running with migration tooling in place. Base schema created and seed
 - [ ] Configure DB read replica (staging only, for pattern validation)
 
 ### Acceptance Criteria
+
 - [ ] `npm run migrate` runs all migrations from scratch cleanly
 - [ ] `npm run seed` populates sample data
 - [ ] All connections (Postgres, Redis, ES) verified from a test script
@@ -93,9 +103,11 @@ PostgreSQL running with migration tooling in place. Base schema created and seed
 ## Milestone 0.4 — API Gateway Setup
 
 ### Goal
+
 Kong API Gateway running locally and in staging, routing to placeholder services.
 
 ### Tasks
+
 - [ ] Deploy Kong Gateway with declarative config (`kong.yml`)
 - [ ] Configure routes: `/api/v1/products/*`, `/api/v1/orders/*`, `/api/v1/users/*`
 - [ ] Add JWT validation plugin
@@ -104,6 +116,7 @@ Kong API Gateway running locally and in staging, routing to placeholder services
 - [ ] Configure CORS allowed origins
 
 ### Acceptance Criteria
+
 - [ ] `curl http://localhost:8000/api/v1/health` returns `200 OK`
 - [ ] Request without valid JWT to protected route returns `401`
 - [ ] Rate limit exceeded returns `429`
@@ -119,9 +132,11 @@ Kong API Gateway running locally and in staging, routing to placeholder services
 ## Milestone 1.1 — User Service: Registration & Login
 
 ### Goal
+
 Users can register, log in via email/phone, and receive JWT tokens. OTP flow via SMS.
 
 ### Tasks
+
 - [ ] Create `user-service` NestJS app skeleton
 - [ ] `POST /auth/register` — register with name, email, phone, password
 - [ ] `POST /auth/login` — login with email/phone + password → returns access + refresh tokens
@@ -134,6 +149,7 @@ Users can register, log in via email/phone, and receive JWT tokens. OTP flow via
 - [ ] Rate limit OTP endpoint (5 requests/hour per phone)
 
 ### Acceptance Criteria
+
 - [ ] Register → Login → get valid JWT works end-to-end
 - [ ] Expired access token rejected with `401`
 - [ ] OTP expires after 5 minutes
@@ -144,9 +160,11 @@ Users can register, log in via email/phone, and receive JWT tokens. OTP flow via
 ## Milestone 1.2 — User Service: Profiles & Address Management
 
 ### Goal
+
 Authenticated users can manage their profile and saved delivery addresses.
 
 ### Tasks
+
 - [ ] `GET /users/me` — get own profile
 - [ ] `PATCH /users/me` — update name, email, phone
 - [ ] `POST /users/me/addresses` — add delivery address
@@ -157,6 +175,7 @@ Authenticated users can manage their profile and saved delivery addresses.
 - [ ] Validate BD phone number format (+8801XXXXXXXXX)
 
 ### Acceptance Criteria
+
 - [ ] All CRUD operations work for authenticated users
 - [ ] User cannot access/modify another user's addresses
 - [ ] Address has required fields: name, phone, line1, district, division, postcode
@@ -166,9 +185,11 @@ Authenticated users can manage their profile and saved delivery addresses.
 ## Milestone 1.3 — Product Service: Category Tree
 
 ### Goal
+
 Full category hierarchy (3 levels deep) stored and retrievable. Admin can manage categories.
 
 ### Tasks
+
 - [ ] Create `categories` table (self-referencing, `parent_id`)
 - [ ] `GET /categories` — return full tree (nested JSON)
 - [ ] `GET /categories/:slug` — single category with children
@@ -180,6 +201,7 @@ Full category hierarchy (3 levels deep) stored and retrievable. Admin can manage
 - [ ] Cache category tree in Redis (TTL 1 hour, invalidate on update)
 
 ### Acceptance Criteria
+
 - [ ] `GET /categories` returns nested tree in < 100ms (from cache)
 - [ ] Creating a sub-category correctly sets `parent_id`
 - [ ] Deleting a category with active products returns `409 Conflict`
@@ -189,9 +211,11 @@ Full category hierarchy (3 levels deep) stored and retrievable. Admin can manage
 ## Milestone 1.4 — Product Service: Brand Management
 
 ### Goal
+
 Brands are managed independently. Products can be filtered and grouped by brand.
 
 ### Tasks
+
 - [ ] Create `brands` table (id, name, slug, logo_url, is_active)
 - [ ] `GET /brands` — list all active brands (paginated)
 - [ ] `GET /brands/:slug` — single brand details
@@ -201,6 +225,7 @@ Brands are managed independently. Products can be filtered and grouped by brand.
 - [ ] Brand logo upload endpoint → store in S3
 
 ### Acceptance Criteria
+
 - [ ] All CRUD endpoints work with proper auth guards
 - [ ] Brand list returns logo URL pointing to S3
 - [ ] Slug is auto-generated from name if not provided
@@ -210,9 +235,11 @@ Brands are managed independently. Products can be filtered and grouped by brand.
 ## Milestone 1.5 — Product Service: Product CRUD
 
 ### Goal
+
 Full product create/read/update/delete with flexible spec attributes per category.
 
 ### Tasks
+
 - [ ] Create `products` table migration (see data model in README)
 - [ ] `POST /products` — create product (admin only)
 - [ ] `GET /products` — list products (paginated, filterable by category, brand, status)
@@ -225,6 +252,7 @@ Full product create/read/update/delete with flexible spec attributes per categor
 - [ ] `GET /products/:id/price-history` — return last 12 price changes
 
 ### Acceptance Criteria
+
 - [ ] Create product with specs → retrieve and specs are intact
 - [ ] Updating price logs a price history record
 - [ ] Public endpoint returns only `status = active` products
@@ -235,9 +263,11 @@ Full product create/read/update/delete with flexible spec attributes per categor
 ## Milestone 1.6 — Product Service: Image Upload
 
 ### Goal
+
 Products have multiple images. Images uploaded to S3 and served via CDN.
 
 ### Tasks
+
 - [ ] Create `product_images` table (id, product_id, url, sort_order, is_primary)
 - [ ] `POST /products/:id/images` — upload image (multipart) → resize → save to S3
 - [ ] `DELETE /products/:id/images/:imageId` — remove image
@@ -247,6 +277,7 @@ Products have multiple images. Images uploaded to S3 and served via CDN.
 - [ ] Set correct `Cache-Control` headers for CDN (1 year immutable)
 
 ### Acceptance Criteria
+
 - [ ] Upload JPEG/PNG → stored in S3 in 3 sizes
 - [ ] Primary image returned first in product detail response
 - [ ] Images served from CDN URL (not S3 direct)
@@ -257,9 +288,11 @@ Products have multiple images. Images uploaded to S3 and served via CDN.
 ## Milestone 1.7 — Product Service: Bulk Import
 
 ### Goal
+
 Admin can import hundreds of products via CSV. Import is async with progress tracking.
 
 ### Tasks
+
 - [ ] `POST /products/import` — upload CSV file
 - [ ] Validate CSV headers and row data
 - [ ] Process import as background job (RabbitMQ queue)
@@ -269,6 +302,7 @@ Admin can import hundreds of products via CSV. Import is async with progress tra
 - [ ] Support upsert (create if not exists, update if slug matches)
 
 ### Acceptance Criteria
+
 - [ ] 500-row CSV import completes without timeout
 - [ ] Rows with invalid data are skipped and reported
 - [ ] Import job status shows percentage progress
@@ -285,9 +319,11 @@ Admin can import hundreds of products via CSV. Import is async with progress tra
 ## Milestone 2.1 — Inventory Service: Multi-Branch Stock
 
 ### Goal
+
 Each product has per-branch stock levels. Stock can be queried and updated atomically.
 
 ### Tasks
+
 - [ ] Create `inventory` table (product_id, branch_id composite PK)
 - [ ] Create `branches` table (id, name, address, phone, is_active)
 - [ ] `GET /inventory/:productId` — stock levels across all branches
@@ -299,6 +335,7 @@ Each product has per-branch stock levels. Stock can be queried and updated atomi
 - [ ] Background job: release expired reservations every 5 minutes
 
 ### Acceptance Criteria
+
 - [ ] Concurrent stock deduction test: 10 concurrent requests for last 1 item → only 1 succeeds
 - [ ] Reservation expires after 15 minutes automatically
 - [ ] Stock adjustment logs actor and reason in `inventory_audit_log` table
@@ -308,9 +345,11 @@ Each product has per-branch stock levels. Stock can be queried and updated atomi
 ## Milestone 2.2 — Inventory Service: Low Stock Alerts & Transfers
 
 ### Goal
+
 Admin gets alerted when stock drops below threshold. Stock can be transferred between branches.
 
 ### Tasks
+
 - [ ] `GET /inventory/low-stock` — list products below threshold (admin)
 - [ ] Trigger low-stock event when quantity crosses threshold → publish to queue
 - [ ] Notification Service consumes event → sends email to branch manager
@@ -320,6 +359,7 @@ Admin gets alerted when stock drops below threshold. Stock can be transferred be
 - [ ] `PATCH /inventory/transfers/:id/status` — update transfer status
 
 ### Acceptance Criteria
+
 - [ ] Stock drop below threshold triggers email within 2 minutes
 - [ ] Transfer request creates records in both source and destination branches
 - [ ] Transfer only completes when both branches confirm
@@ -329,9 +369,11 @@ Admin gets alerted when stock drops below threshold. Stock can be transferred be
 ## Milestone 2.3 — Search Service: Elasticsearch Indexing
 
 ### Goal
+
 Product data is indexed in Elasticsearch. Index stays in sync with database changes.
 
 ### Tasks
+
 - [ ] Define Elasticsearch index mapping for products (name, brand, category, specs, price, stock)
 - [ ] `POST /search/index/all` — full re-index of all products (admin, background job)
 - [ ] Event listener: on product create/update → upsert Elasticsearch document
@@ -341,6 +383,7 @@ Product data is indexed in Elasticsearch. Index stays in sync with database chan
 - [ ] Set up index aliases for zero-downtime re-indexing
 
 ### Acceptance Criteria
+
 - [ ] Full re-index of 10,000 products completes in < 5 minutes
 - [ ] Product update reflects in search within 30 seconds
 - [ ] Index alias swap causes zero search downtime
@@ -349,11 +392,12 @@ Product data is indexed in Elasticsearch. Index stays in sync with database chan
 
 ## Milestone 2.4 — Search Service: Search API
 
-
 ### Goal
+
 Fully featured search API with filters, sorting, facets, and fuzzy matching.
 
 ### Tasks
+
 - [ ] `GET /search?q=&brand=&category=&min_price=&max_price=&in_stock=&sort=` — main search endpoint
 - [ ] Multi-field match: name (boost 3×), brand (boost 2×), category, specs
 - [ ] Fuzzy matching (`fuzziness: AUTO`) for typo tolerance
@@ -365,6 +409,7 @@ Fully featured search API with filters, sorting, facets, and fuzzy matching.
 - [ ] Log search queries to analytics (what users search for)
 
 ### Acceptance Criteria
+
 - [ ] Search "lenovo laptop" returns relevant products < 300ms
 - [ ] Searching "laaptop" (typo) still returns laptop results
 - [ ] Facets reflect count of products matching each filter option
@@ -375,9 +420,11 @@ Fully featured search API with filters, sorting, facets, and fuzzy matching.
 ## Milestone 2.5 — Laptop Finder Wizard
 
 ### Goal
+
 Step-by-step guided wizard recommends laptops based on user answers.
 
 ### Tasks
+
 - [ ] Define wizard question schema (JSON config): use-case, budget, OS preference, display size, priority (battery/performance/portability)
 - [ ] `GET /search/finder/questions` — return wizard questions
 - [ ] `POST /search/finder/results` — submit answers → return matched laptops
@@ -386,6 +433,7 @@ Step-by-step guided wizard recommends laptops based on user answers.
 - [ ] Return top 8 recommendations with match explanation
 
 ### Acceptance Criteria
+
 - [ ] Budget filter is strictly applied (no results above max budget)
 - [ ] "Gaming" use-case boosts GPU-heavy laptops
 - [ ] Results returned in < 500ms
@@ -401,9 +449,11 @@ Step-by-step guided wizard recommends laptops based on user answers.
 ## Milestone 3.1 — Cart Service
 
 ### Goal
+
 Users and guests can manage a shopping cart. Cart persists across sessions for logged-in users.
 
 ### Tasks
+
 - [ ] Guest cart stored in Redis with `cart:{sessionId}` key (TTL 7 days)
 - [ ] Logged-in cart stored in DB (`carts` table), synced to Redis
 - [ ] `GET /cart` — get current cart (merges guest + user cart on login)
@@ -416,6 +466,7 @@ Users and guests can manage a shopping cart. Cart persists across sessions for l
 - [ ] Cart total recalculated on every mutation (apply active price, not cached)
 
 ### Acceptance Criteria
+
 - [ ] Guest adds items → logs in → guest cart merges with account cart
 - [ ] Adding out-of-stock item returns `409 Out of stock`
 - [ ] Cart item price reflects current product price (not stale)
@@ -425,9 +476,11 @@ Users and guests can manage a shopping cart. Cart persists across sessions for l
 ## Milestone 3.2 — Coupon / Promo Service
 
 ### Goal
+
 Admin can create promo codes. Users can apply them at checkout with validation.
 
 ### Tasks
+
 - [ ] Create `coupons` table (code, type, value, min_order, max_uses, expires_at, is_active)
 - [ ] Coupon types: `percentage` (20% off), `fixed` (BDT 200 off), `free_shipping`
 - [ ] `POST /coupons` — create coupon (admin)
@@ -438,6 +491,7 @@ Admin can create promo codes. Users can apply them at checkout with validation.
 - [ ] Track coupon usage per user (one-time-use coupons)
 
 ### Acceptance Criteria
+
 - [ ] Expired coupon returns `410 Coupon expired`
 - [ ] Max-uses reached returns `409 Coupon exhausted`
 - [ ] One-time coupon: second use by same user rejected
@@ -448,9 +502,11 @@ Admin can create promo codes. Users can apply them at checkout with validation.
 ## Milestone 3.3 — Order Service: Place Order
 
 ### Goal
+
 User can place an order from their cart. Order record created with correct state.
 
 ### Tasks
+
 - [ ] `POST /orders` — place order (requires valid cart + payment intent)
 - [ ] Validate: all cart items still in stock
 - [ ] Deduct inventory atomically on order placement
@@ -462,6 +518,7 @@ User can place an order from their cart. Order record created with correct state
 - [ ] `GET /orders/:id/invoice` — generate PDF invoice
 
 ### Acceptance Criteria
+
 - [ ] Order placement is atomic: all items deducted or none
 - [ ] Order reference is unique and sequential
 - [ ] `order.placed` event published and confirmed in queue
@@ -472,9 +529,11 @@ User can place an order from their cart. Order record created with correct state
 ## Milestone 3.4 — Order Service: Order Lifecycle Management
 
 ### Goal
+
 Admin can manage the order lifecycle from confirmed through to delivered or cancelled.
 
 ### Tasks
+
 - [ ] `PATCH /orders/:id/status` — update status (admin/staff)
 - [ ] Allowed transitions: placed→confirmed→packed→shipped→delivered, placed→cancelled
 - [ ] Each transition logs entry to `order_status_history` table (status, changed_by, changed_at, note)
@@ -484,6 +543,7 @@ Admin can manage the order lifecycle from confirmed through to delivered or canc
 - [ ] `GET /admin/orders/export` — export filtered orders to CSV
 
 ### Acceptance Criteria
+
 - [ ] Invalid status transition (e.g. delivered → packed) returns `422`
 - [ ] Cancellation releases stock within 5 seconds
 - [ ] Status history shows full audit trail with timestamps
@@ -494,9 +554,11 @@ Admin can manage the order lifecycle from confirmed through to delivered or canc
 ## Milestone 3.5 — Returns & Warranty Handling
 
 ### Goal
+
 Customer can raise a return or warranty claim. Admin can process it.
 
 ### Tasks
+
 - [ ] Create `return_requests` table (order_id, items, reason, status, created_at)
 - [ ] `POST /orders/:id/return` — raise return request (within 7 days of delivery)
 - [ ] `GET /orders/returns` — customer's return history
@@ -508,6 +570,7 @@ Customer can raise a return or warranty claim. Admin can process it.
 - [ ] `GET /admin/warranty-claims` — admin warranty queue
 
 ### Acceptance Criteria
+
 - [ ] Return request after 7 days returns `422 Return window closed`
 - [ ] Approved return triggers refund event to Payment Service
 - [ ] Warranty claim requires order_id proving purchase
@@ -523,9 +586,11 @@ Customer can raise a return or warranty claim. Admin can process it.
 ## Milestone 4.1 — SSLCOMMERZ Integration (Cards)
 
 ### Goal
+
 Users can pay with credit/debit card via SSLCOMMERZ. Successful payment confirms order.
 
 ### Tasks
+
 - [ ] Integrate SSLCOMMERZ SDK / API
 - [ ] `POST /payments/sslcommerz/initiate` — create payment session, return redirect URL
 - [ ] Handle success callback: `POST /payments/sslcommerz/success`
@@ -537,6 +602,7 @@ Users can pay with credit/debit card via SSLCOMMERZ. Successful payment confirms
 - [ ] Publish `payment.confirmed` or `payment.failed` event
 
 ### Acceptance Criteria
+
 - [ ] Successful payment → order status changes to confirmed
 - [ ] Failed payment → order remains in placed state with `payment_status = failed`
 - [ ] IPN signature mismatch → request rejected with `400`
@@ -547,9 +613,11 @@ Users can pay with credit/debit card via SSLCOMMERZ. Successful payment confirms
 ## Milestone 4.2 — bKash Integration
 
 ### Goal
+
 Users can pay with bKash mobile wallet. Supports bKash payment agreement + execute flow.
 
 ### Tasks
+
 - [ ] Integrate bKash Payment Gateway API (create, execute, query)
 - [ ] `POST /payments/bkash/create` — create bKash payment
 - [ ] `POST /payments/bkash/execute` — execute after user approval
@@ -560,6 +628,7 @@ Users can pay with bKash mobile wallet. Supports bKash payment agreement + execu
 - [ ] Graceful error handling: bKash timeout, user cancellation, insufficient balance messages
 
 ### Acceptance Criteria
+
 - [ ] End-to-end bKash payment flow works in sandbox
 - [ ] bKash refund initiated within 24 hours of return approval
 - [ ] Timeout handled gracefully (user redirected with clear message)
@@ -569,9 +638,11 @@ Users can pay with bKash mobile wallet. Supports bKash payment agreement + execu
 ## Milestone 4.3 — Nagad Integration
 
 ### Goal
+
 Users can pay with Nagad mobile wallet.
 
 ### Tasks
+
 - [ ] Integrate Nagad Payment API (create order, verify payment)
 - [ ] `POST /payments/nagad/initiate`
 - [ ] `POST /payments/nagad/callback` — handle callback
@@ -579,6 +650,7 @@ Users can pay with Nagad mobile wallet.
 - [ ] Nagad refund endpoint
 
 ### Acceptance Criteria
+
 - [ ] Same acceptance criteria as bKash milestone
 - [ ] Nagad sandbox tests pass
 
@@ -587,9 +659,11 @@ Users can pay with Nagad mobile wallet.
 ## Milestone 4.4 — Cash on Delivery & Payment Reconciliation
 
 ### Goal
+
 COD orders are handled without a gateway. Admin can reconcile all payments.
 
 ### Tasks
+
 - [ ] COD orders bypass payment gateway; `payment_status = pending_cod`
 - [ ] COD limit: max order BDT 50,000 (configurable)
 - [ ] On delivery confirmation → staff marks payment received → `payment_status = paid`
@@ -599,6 +673,7 @@ COD orders are handled without a gateway. Admin can reconcile all payments.
 - [ ] Failed payment retry: `POST /payments/:orderId/retry`
 
 ### Acceptance Criteria
+
 - [ ] COD order above limit returns `422`
 - [ ] Reconciliation report shows matched/unmatched transactions
 - [ ] Payment retry generates a new payment session for the same order
@@ -614,9 +689,11 @@ COD orders are handled without a gateway. Admin can reconcile all payments.
 ## Milestone 5.1 — Delivery Service: Courier Integration
 
 ### Goal
+
 Orders can be dispatched via Pathao or Steadfast. Tracking numbers linked to orders.
 
 ### Tasks
+
 - [ ] Integrate Pathao Courier API (create parcel, track)
 - [ ] Integrate Steadfast Courier API (create parcel, track)
 - [ ] `POST /delivery/dispatch/:orderId` — dispatch order (admin, select courier)
@@ -629,6 +706,7 @@ Orders can be dispatched via Pathao or Steadfast. Tracking numbers linked to ord
 - [ ] Calculate shipping cost by zone and weight
 
 ### Acceptance Criteria
+
 - [ ] Parcel created in Pathao → tracking number returned and saved
 - [ ] Delivery webhook → order status updated within 30 seconds
 - [ ] Shipping cost correctly calculated by delivery zone
@@ -638,9 +716,11 @@ Orders can be dispatched via Pathao or Steadfast. Tracking numbers linked to ord
 ## Milestone 5.2 — Click & Collect (In-Store Pickup)
 
 ### Goal
+
 Customer can choose to pick up order from a Star Tech branch instead of home delivery.
 
 ### Tasks
+
 - [ ] Add `fulfilment_type` field to orders: `delivery` | `pickup`
 - [ ] `GET /branches` — public endpoint: list active branches with address and hours
 - [ ] On checkout: select branch pickup → skip delivery address, set branch_id
@@ -649,6 +729,7 @@ Customer can choose to pick up order from a Star Tech branch instead of home del
 - [ ] Customer presents order ID or QR code at counter → staff confirms pickup
 
 ### Acceptance Criteria
+
 - [ ] Pickup order skips courier creation
 - [ ] Customer receives SMS when order is ready for pickup
 - [ ] Staff can filter pickup-only orders per branch
@@ -658,9 +739,11 @@ Customer can choose to pick up order from a Star Tech branch instead of home del
 ## Milestone 5.3 — Notification Service: SMS & Email
 
 ### Goal
+
 Customers receive SMS and email notifications for all key order events.
 
 ### Tasks
+
 - [ ] Create Notification Service that consumes events from RabbitMQ
 - [ ] SMS templates: order_confirmed, order_shipped, order_delivered, otp, return_approved
 - [ ] Email templates: order_confirmed (with invoice PDF), order_shipped, welcome, password_reset
@@ -670,6 +753,7 @@ Customers receive SMS and email notifications for all key order events.
 - [ ] Failed notification: retry 3 times with exponential backoff, then dead-letter
 
 ### Acceptance Criteria
+
 - [ ] Order placed SMS arrives within 60 seconds
 - [ ] Email has correct order items, total, and invoice attachment
 - [ ] User who opts out of email does not receive email
@@ -680,9 +764,11 @@ Customers receive SMS and email notifications for all key order events.
 ## Milestone 5.4 — Notification Service: Price Alerts & Restock
 
 ### Goal
+
 Users can subscribe to price drop alerts and back-in-stock notifications.
 
 ### Tasks
+
 - [ ] `POST /notifications/price-alert` — subscribe to product price alert at target price
 - [ ] `POST /notifications/restock-alert` — subscribe to product restock notification
 - [ ] Background job: on price change, check subscribers → send SMS/email if target met
@@ -691,6 +777,7 @@ Users can subscribe to price drop alerts and back-in-stock notifications.
 - [ ] `DELETE /notifications/alerts/:id` — cancel alert
 
 ### Acceptance Criteria
+
 - [ ] Price drops to/below target → subscriber notified within 5 minutes
 - [ ] Out-of-stock product restocked → subscriber notified within 5 minutes
 - [ ] User can have up to 20 active alerts
@@ -706,9 +793,11 @@ Users can subscribe to price drop alerts and back-in-stock notifications.
 ## Milestone 6.1 — Compatibility Engine
 
 ### Goal
+
 Core compatibility rules validated in real-time as user selects PC components.
 
 ### Tasks
+
 - [ ] Define compatibility rule schema (JSON config per rule type)
 - [ ] Rules to implement:
   - CPU socket ↔ Motherboard socket (e.g. AM5, LGA1700)
@@ -723,6 +812,7 @@ Core compatibility rules validated in real-time as user selects PC components.
 - [ ] Errors block adding to cart; warnings inform but allow proceed
 
 ### Acceptance Criteria
+
 - [ ] AM5 CPU + LGA1700 motherboard → error returned
 - [ ] DDR5 RAM + DDR4 motherboard → error returned
 - [ ] 850W GPU in 600W PSU build → warning with wattage breakdown
@@ -733,9 +823,11 @@ Core compatibility rules validated in real-time as user selects PC components.
 ## Milestone 6.2 — PC Builder API & Build Management
 
 ### Goal
+
 Users can build, save, share, and load PC builds. Builds can be added to cart.
 
 ### Tasks
+
 - [ ] `GET /pc-builder/components/:slot` — get compatible components for a slot given existing selections
 - [ ] `POST /pc-builder/builds` — save a build (auth required for permanent, guest gets temp link)
 - [ ] `GET /pc-builder/builds/:slug` — load a saved build (public)
@@ -747,6 +839,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] Share URL: `startech.com.bd/pc-builder/share/{slug}`
 
 ### Acceptance Criteria
+
 - [ ] Saved build loads with all components correctly
 - [ ] Add-all-to-cart adds each component as a separate line item
 - [ ] Guest build link works without login
@@ -763,6 +856,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 7.1 — Next.js App Shell & Navigation
 
 ### Tasks
+
 - [ ] Set up Next.js 14 with App Router, TypeScript, Tailwind CSS
 - [ ] Global layout: header (logo, search bar, cart icon, account menu)
 - [ ] Mega menu navigation (matches Star Tech's 20+ category structure)
@@ -774,6 +868,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] Google Analytics 4 + Facebook Pixel integration
 
 ### Acceptance Criteria
+
 - [ ] Lighthouse performance score ≥ 85 on mobile
 - [ ] Navigation renders correctly on all screen sizes (320px → 1440px)
 - [ ] Core Web Vitals: LCP < 2.5s, CLS < 0.1
@@ -783,6 +878,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 7.2 — Homepage & Product Listing Pages
 
 ### Tasks
+
 - [ ] Homepage: hero banner, featured categories, deal of the day, featured products, brands
 - [ ] Category page: product grid with sidebar filters
 - [ ] Filters: brand (checkbox), price range (slider), in-stock toggle, spec filters (dynamic per category)
@@ -793,6 +889,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] "Out of stock" badge on unavailable products
 
 ### Acceptance Criteria
+
 - [ ] Homepage loads in < 2s (SSG)
 - [ ] Filters update results without full page reload
 - [ ] URL reflects filter state (shareable filtered URLs)
@@ -802,6 +899,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 7.3 — Product Detail Page
 
 ### Tasks
+
 - [ ] Product image gallery with zoom
 - [ ] Product name, brand, price, availability badge
 - [ ] Specs table (rendered from JSONB specs)
@@ -816,6 +914,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] SEO: dynamic `<title>`, `<meta description>`, JSON-LD schema
 
 ### Acceptance Criteria
+
 - [ ] Page is SSR for SEO (not client-only)
 - [ ] JSON-LD Product schema renders correctly (Google Rich Results test)
 - [ ] Image gallery works on touch (swipe on mobile)
@@ -825,6 +924,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 7.4 — Search & Finder Pages
 
 ### Tasks
+
 - [ ] Search results page with facet sidebar
 - [ ] Real-time autocomplete dropdown (debounced, 300ms)
 - [ ] Empty state: "No results for X — did you mean Y?"
@@ -833,6 +933,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] Search analytics: track what users search for
 
 ### Acceptance Criteria
+
 - [ ] Autocomplete appears in < 200ms after typing
 - [ ] Laptop Finder completes in 5 steps or fewer
 - [ ] Comparison page works for 2–3 products side by side
@@ -842,6 +943,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 7.5 — Cart, Checkout & Order Tracking
 
 ### Tasks
+
 - [ ] Cart drawer/page: items, quantities, subtotal, remove item
 - [ ] Coupon code input and feedback
 - [ ] Checkout page: address selection/entry, delivery method, payment method
@@ -854,6 +956,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] Real-time tracking status (polling every 30 sec when order in transit)
 
 ### Acceptance Criteria
+
 - [ ] Guest checkout works without account
 - [ ] bKash redirect and callback handled correctly
 - [ ] Order confirmation email received within 2 minutes of placement
@@ -870,6 +973,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 8.1 — Admin Auth & Layout
 
 ### Tasks
+
 - [ ] Admin login page (email + password, 2FA via TOTP)
 - [ ] Role-based sidebar navigation (super_admin, branch_admin, staff)
 - [ ] Dashboard home: today's orders, revenue, new users, low-stock alerts
@@ -880,6 +984,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 8.2 — Product & Category Management UI
 
 ### Tasks
+
 - [ ] Product list with search, filter, and bulk actions (activate, deactivate, delete)
 - [ ] Product create/edit form with image upload, spec editor (dynamic per category)
 - [ ] Category tree UI with drag-to-reorder
@@ -891,6 +996,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 8.3 — Order & Inventory Management UI
 
 ### Tasks
+
 - [ ] Order list with filters (status, date, branch, payment method)
 - [ ] Order detail page: items, timeline, change status, print invoice
 - [ ] Return & warranty claim management queue
@@ -903,6 +1009,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 8.4 — Analytics & Reports UI
 
 ### Tasks
+
 - [ ] Sales dashboard with date picker: revenue chart, order count, AOV
 - [ ] Revenue by category (bar chart)
 - [ ] Revenue by branch (branch comparison)
@@ -922,6 +1029,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 9.1 — Mobile App Foundation
 
 ### Tasks
+
 - [ ] React Native (Expo) project setup
 - [ ] Navigation: Tab bar (Home, Search, Cart, Account) + Stack navigator
 - [ ] Auth screens: login, register, OTP verification
@@ -934,6 +1042,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 9.2 — Home, Browse & Search
 
 ### Tasks
+
 - [ ] Home screen: banner, featured categories, deals
 - [ ] Category browse screen
 - [ ] Search screen with autocomplete
@@ -946,6 +1055,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 9.3 — Cart, Checkout & Orders
 
 ### Tasks
+
 - [ ] Cart screen
 - [ ] Checkout: address, delivery, payment selection
 - [ ] bKash in-app web view payment
@@ -958,6 +1068,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 9.4 — Account, Wishlist & PC Builder Mobile
 
 ### Tasks
+
 - [ ] Account screen: profile, addresses, loyalty points
 - [ ] Wishlist screen
 - [ ] Price alert subscriptions
@@ -976,6 +1087,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 10.1 — Offer & Promo Engine
 
 ### Tasks
+
 - [ ] Flash sale scheduler: set start/end time, discounted price activates automatically
 - [ ] Bundle deals: buy X + Y together → fixed/percentage discount
 - [ ] `GET /offers` — current live offers page
@@ -990,6 +1102,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 10.2 — Analytics Pipeline
 
 ### Tasks
+
 - [ ] Event tracking: page_view, product_view, add_to_cart, purchase, search
 - [ ] Ingest events to ClickHouse via Kafka consumer
 - [ ] Build analytics API: `GET /analytics/sales`, `GET /analytics/products`, `GET /analytics/users`
@@ -1008,6 +1121,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 11.1 — Testing
 
 ### Tasks
+
 - [ ] Unit test coverage ≥ 80% for all backend services
 - [ ] Integration tests for all critical flows: order placement, payment, inventory deduction
 - [ ] E2E tests with Playwright: browse → add to cart → checkout → order confirmation
@@ -1018,6 +1132,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] Mobile device test: Android (Samsung, Xiaomi), iOS (iPhone 12+)
 
 ### Acceptance Criteria
+
 - [ ] All E2E tests pass on staging
 - [ ] Load test: P95 response < 2s under 1,000 concurrent users
 - [ ] Zero oversell in concurrent inventory test (100 concurrent attempts for 10 units)
@@ -1027,6 +1142,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 11.2 — Security Hardening
 
 ### Tasks
+
 - [ ] Penetration test: SQL injection, XSS, CSRF, IDOR checks
 - [ ] OWASP Top 10 review and fixes
 - [ ] Configure Content Security Policy headers
@@ -1042,6 +1158,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 11.3 — Performance Optimisation
 
 ### Tasks
+
 - [ ] Achieve Lighthouse score ≥ 85 on all key pages (home, PDP, search)
 - [ ] Core Web Vitals: LCP < 2.5s, FID < 100ms, CLS < 0.1
 - [ ] Image optimisation: WebP conversion, `srcset` for all product images
@@ -1062,6 +1179,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 12.1 — Pre-Launch Checklist
 
 ### Tasks
+
 - [ ] DNS cutover plan documented (zero-downtime strategy)
 - [ ] SSL certificate issued and auto-renewal configured
 - [ ] Production environment variables set and verified
@@ -1077,6 +1195,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 ## Milestone 12.2 — Staged Rollout
 
 ### Tasks
+
 - [ ] Deploy to production with 5% traffic canary
 - [ ] Monitor error rate, latency, and conversion for 2 hours
 - [ ] Increase to 25% traffic → 50% → 100% over 24 hours
@@ -1086,6 +1205,7 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 - [ ] Post-launch retrospective scheduled for 1 week after launch
 
 ### Go/No-Go Criteria
+
 - [ ] Error rate < 0.5% on canary traffic
 - [ ] P95 response time < 2s on canary traffic
 - [ ] Payment flow tested with real transaction in production
@@ -1097,72 +1217,72 @@ Users can build, save, share, and load PC builds. Builds can be added to cart.
 
 ## Summary Tracker
 
-| Milestone | Phase | Status |
-|---|---|---|
-| 0.1 Repo & project structure | Foundation | ⬜ Todo |
-| 0.2 CI/CD pipeline | Foundation | ⬜ Todo |
-| 0.3 Database setup | Foundation | ⬜ Todo |
-| 0.4 API Gateway | Foundation | ⬜ Todo |
-| 1.1 User registration & login | Core Backend | ⬜ Todo |
-| 1.2 User profiles & addresses | Core Backend | ⬜ Todo |
-| 1.3 Category tree | Core Backend | ⬜ Todo |
-| 1.4 Brand management | Core Backend | ⬜ Todo |
-| 1.5 Product CRUD | Core Backend | ⬜ Todo |
-| 1.6 Image upload | Core Backend | ⬜ Todo |
-| 1.7 Bulk import | Core Backend | ⬜ Todo |
-| 2.1 Multi-branch inventory | Inventory & Search | ⬜ Todo |
+| Milestone                        | Phase              | Status  |
+| -------------------------------- | ------------------ | ------- |
+| 0.1 Repo & project structure     | Foundation         | ⬜ Todo |
+| 0.2 CI/CD pipeline               | Foundation         | ⬜ Todo |
+| 0.3 Database setup               | Foundation         | ⬜ Todo |
+| 0.4 API Gateway                  | Foundation         | ⬜ Todo |
+| 1.1 User registration & login    | Core Backend       | ⬜ Todo |
+| 1.2 User profiles & addresses    | Core Backend       | ⬜ Todo |
+| 1.3 Category tree                | Core Backend       | ⬜ Todo |
+| 1.4 Brand management             | Core Backend       | ⬜ Todo |
+| 1.5 Product CRUD                 | Core Backend       | ⬜ Todo |
+| 1.6 Image upload                 | Core Backend       | ⬜ Todo |
+| 1.7 Bulk import                  | Core Backend       | ⬜ Todo |
+| 2.1 Multi-branch inventory       | Inventory & Search | ⬜ Todo |
 | 2.2 Low stock alerts & transfers | Inventory & Search | ⬜ Todo |
-| 2.3 Elasticsearch indexing | Inventory & Search | ⬜ Todo |
-| 2.4 Search API | Inventory & Search | ⬜ Todo |
-| 2.5 Laptop Finder wizard | Inventory & Search | ⬜ Todo |
-| 3.1 Cart service | Cart & Orders | ⬜ Todo |
-| 3.2 Coupon service | Cart & Orders | ⬜ Todo |
-| 3.3 Place order | Cart & Orders | ⬜ Todo |
-| 3.4 Order lifecycle | Cart & Orders | ⬜ Todo |
-| 3.5 Returns & warranty | Cart & Orders | ⬜ Todo |
-| 4.1 SSLCOMMERZ (cards) | Payments | ⬜ Todo |
-| 4.2 bKash integration | Payments | ⬜ Todo |
-| 4.3 Nagad integration | Payments | ⬜ Todo |
-| 4.4 COD & reconciliation | Payments | ⬜ Todo |
-| 5.1 Courier integration | Delivery | ⬜ Todo |
-| 5.2 Click & Collect | Delivery | ⬜ Todo |
-| 5.3 SMS & email notifications | Notifications | ⬜ Todo |
-| 5.4 Price & restock alerts | Notifications | ⬜ Todo |
-| 6.1 Compatibility engine | PC Builder | ⬜ Todo |
-| 6.2 Build management API | PC Builder | ⬜ Todo |
-| 7.1 Next.js app shell | Frontend Web | ⬜ Todo |
-| 7.2 Homepage & listings | Frontend Web | ⬜ Todo |
-| 7.3 Product detail page | Frontend Web | ⬜ Todo |
-| 7.4 Search & Finder | Frontend Web | ⬜ Todo |
-| 7.5 Cart, checkout & tracking | Frontend Web | ⬜ Todo |
-| 8.1 Admin auth & layout | Admin Dashboard | ⬜ Todo |
-| 8.2 Product management UI | Admin Dashboard | ⬜ Todo |
-| 8.3 Order & inventory UI | Admin Dashboard | ⬜ Todo |
-| 8.4 Analytics UI | Admin Dashboard | ⬜ Todo |
-| 9.1 Mobile app foundation | Mobile App | ⬜ Todo |
-| 9.2 Home, browse & search | Mobile App | ⬜ Todo |
-| 9.3 Cart, checkout & orders | Mobile App | ⬜ Todo |
-| 9.4 Account & PC Builder | Mobile App | ⬜ Todo |
-| 10.1 Offer & promo engine | Analytics & Offers | ⬜ Todo |
-| 10.2 Analytics pipeline | Analytics & Offers | ⬜ Todo |
-| 11.1 Testing | QA & Hardening | ⬜ Todo |
-| 11.2 Security hardening | QA & Hardening | ⬜ Todo |
-| 11.3 Performance optimisation | QA & Hardening | ⬜ Todo |
-| 12.1 Pre-launch checklist | Launch | ⬜ Todo |
-| 12.2 Staged rollout | Launch | ⬜ Todo |
+| 2.3 Elasticsearch indexing       | Inventory & Search | ⬜ Todo |
+| 2.4 Search API                   | Inventory & Search | ⬜ Todo |
+| 2.5 Laptop Finder wizard         | Inventory & Search | ⬜ Todo |
+| 3.1 Cart service                 | Cart & Orders      | ⬜ Todo |
+| 3.2 Coupon service               | Cart & Orders      | ⬜ Todo |
+| 3.3 Place order                  | Cart & Orders      | ⬜ Todo |
+| 3.4 Order lifecycle              | Cart & Orders      | ⬜ Todo |
+| 3.5 Returns & warranty           | Cart & Orders      | ⬜ Todo |
+| 4.1 SSLCOMMERZ (cards)           | Payments           | ⬜ Todo |
+| 4.2 bKash integration            | Payments           | ⬜ Todo |
+| 4.3 Nagad integration            | Payments           | ⬜ Todo |
+| 4.4 COD & reconciliation         | Payments           | ⬜ Todo |
+| 5.1 Courier integration          | Delivery           | ⬜ Todo |
+| 5.2 Click & Collect              | Delivery           | ⬜ Todo |
+| 5.3 SMS & email notifications    | Notifications      | ⬜ Todo |
+| 5.4 Price & restock alerts       | Notifications      | ⬜ Todo |
+| 6.1 Compatibility engine         | PC Builder         | ⬜ Todo |
+| 6.2 Build management API         | PC Builder         | ⬜ Todo |
+| 7.1 Next.js app shell            | Frontend Web       | ⬜ Todo |
+| 7.2 Homepage & listings          | Frontend Web       | ⬜ Todo |
+| 7.3 Product detail page          | Frontend Web       | ⬜ Todo |
+| 7.4 Search & Finder              | Frontend Web       | ⬜ Todo |
+| 7.5 Cart, checkout & tracking    | Frontend Web       | ⬜ Todo |
+| 8.1 Admin auth & layout          | Admin Dashboard    | ⬜ Todo |
+| 8.2 Product management UI        | Admin Dashboard    | ⬜ Todo |
+| 8.3 Order & inventory UI         | Admin Dashboard    | ⬜ Todo |
+| 8.4 Analytics UI                 | Admin Dashboard    | ⬜ Todo |
+| 9.1 Mobile app foundation        | Mobile App         | ⬜ Todo |
+| 9.2 Home, browse & search        | Mobile App         | ⬜ Todo |
+| 9.3 Cart, checkout & orders      | Mobile App         | ⬜ Todo |
+| 9.4 Account & PC Builder         | Mobile App         | ⬜ Todo |
+| 10.1 Offer & promo engine        | Analytics & Offers | ⬜ Todo |
+| 10.2 Analytics pipeline          | Analytics & Offers | ⬜ Todo |
+| 11.1 Testing                     | QA & Hardening     | ⬜ Todo |
+| 11.2 Security hardening          | QA & Hardening     | ⬜ Todo |
+| 11.3 Performance optimisation    | QA & Hardening     | ⬜ Todo |
+| 12.1 Pre-launch checklist        | Launch             | ⬜ Todo |
+| 12.2 Staged rollout              | Launch             | ⬜ Todo |
 
 ---
 
 ## Status Legend
 
-| Symbol | Meaning |
-|---|---|
-| ⬜ Todo | Not started |
-| 🔵 In Progress | Actively being worked on |
-| ✅ Done | Complete and accepted |
-| 🔴 Blocked | Blocked by dependency or issue |
-| ⏸️ Paused | Deprioritised or on hold |
+| Symbol         | Meaning                        |
+| -------------- | ------------------------------ |
+| ⬜ Todo        | Not started                    |
+| 🔵 In Progress | Actively being worked on       |
+| ✅ Done        | Complete and accepted          |
+| 🔴 Blocked     | Blocked by dependency or issue |
+| ⏸️ Paused      | Deprioritised or on hold       |
 
 ---
 
-*Update this file at every sprint sync. Each milestone = one PR review checkpoint.*
+_Update this file at every sprint sync. Each milestone = one PR review checkpoint._

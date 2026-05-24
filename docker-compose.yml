@@ -1,0 +1,113 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: amazra-postgres
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-amazra}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgbouncer:
+    image: pgbouncer/pgbouncer:1.15.0
+    container_name: amazra-pgbouncer
+    depends_on:
+      - postgres
+    ports:
+      - '6432:6432'
+    environment:
+      DATABASES_HOST: postgres
+      DATABASES_PORT: 5432
+      DATABASES_USER: ${POSTGRES_USER:-postgres}
+      DATABASES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DATABASES_DBNAME: ${POSTGRES_DB:-amazra}
+      PGBOUNCER_LISTEN_PORT: 6432
+      PGBOUNCER_AUTH_TYPE: plain
+      PGBOUNCER_AUTH_FILE: /etc/pgbouncer/userlist.txt
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 200
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+      PGBOUNCER_IGNORE_STARTUP_PARAMETERS: extra_float_digits
+    volumes:
+      - ./infra/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+
+  redis:
+    image: redis:7
+    container_name: amazra-redis
+    ports:
+      - '6380:6379'
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: amazra-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - '9201:9200'
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  elasticsearch-init:
+    image: curlimages/curl:8.6.0
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./infra/elasticsearch:/setup:ro
+    entrypoint: ['sh', '/setup/setup.sh']
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: amazra-rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    container_name: amazra-api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-amazra}
+      DATABASE_POOL_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@pgbouncer:6432/${POSTGRES_DB:-amazra}
+      REDIS_URL: redis://redis:6379
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - postgres
+      - pgbouncer
+      - redis
+      - elasticsearch
+      - rabbitmq
+    ports:
+      - '8001:8000'
+
+  kong:
+    image: kong:3.6
+    container_name: amazra-kong
+    depends_on:
+      - api
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    ports:
+      - '8000:8000'
+      - '8002:8001'
+    volumes:
+      - ./infra/kong/kong.yml:/kong/declarative/kong.yml:ro
+
+volumes:
+  postgres_data:
+  es_data:
