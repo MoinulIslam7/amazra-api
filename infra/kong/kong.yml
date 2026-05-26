@@ -21,6 +21,10 @@ services:
         paths:
           - /api/v1/users
         strip_path: false
+      - name: media
+        paths:
+          - /media
+        strip_path: false
 
 plugins:
   - name: rate-limiting
