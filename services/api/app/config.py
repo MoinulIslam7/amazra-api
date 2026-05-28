@@ -19,6 +19,7 @@ def _normalize_pem(value: str | None) -> str | None:
 class Settings:
     database_url: str
     redis_url: str
+    elasticsearch_url: str
     jwt_private_key: str
     jwt_public_key: str
     jwt_access_ttl_minutes: int
@@ -32,6 +33,10 @@ class Settings:
     s3_endpoint_url: str | None
     cdn_base_url: str | None
     import_queue_name: str
+    search_reindex_queue_name: str
+    low_stock_queue_name: str
+    search_index_alias: str
+    search_index_prefix: str
     local_storage_path: str
     public_base_url: str
 
@@ -55,6 +60,7 @@ def get_settings() -> Settings:
     return Settings(
         database_url=os.getenv("DATABASE_URL", ""),
         redis_url=os.getenv("REDIS_URL", ""),
+        elasticsearch_url=os.getenv("ELASTICSEARCH_URL", ""),
         jwt_private_key=private_key,
         jwt_public_key=public_key,
         jwt_access_ttl_minutes=int(os.getenv("JWT_ACCESS_TTL_MINUTES", "15")),
@@ -68,6 +74,14 @@ def get_settings() -> Settings:
         s3_endpoint_url=os.getenv("S3_ENDPOINT_URL"),
         cdn_base_url=os.getenv("CDN_BASE_URL"),
         import_queue_name=os.getenv("IMPORT_QUEUE_NAME", "product_imports"),
+        search_reindex_queue_name=os.getenv(
+            "SEARCH_REINDEX_QUEUE_NAME", "search_reindex"
+        ),
+        low_stock_queue_name=os.getenv(
+            "LOW_STOCK_QUEUE_NAME", "inventory_low_stock"
+        ),
+        search_index_alias=os.getenv("SEARCH_INDEX_ALIAS", "products"),
+        search_index_prefix=os.getenv("SEARCH_INDEX_PREFIX", "products"),
         local_storage_path=os.getenv("LOCAL_STORAGE_PATH", "storage"),
         public_base_url=os.getenv("PUBLIC_BASE_URL", "http://localhost:8001"),
     )

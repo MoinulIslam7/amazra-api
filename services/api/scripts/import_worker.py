@@ -11,6 +11,8 @@ from jsonschema.exceptions import ValidationError
 
 from app.config import get_settings
 from app.db import close_pool, get_connection, init_pool
+from app.search_client import init_search
+from app.search_index import upsert_product_document
 from app.storage import download_bytes
 from app.utils import slugify
 
@@ -119,8 +121,9 @@ def process_job(job_id: str) -> None:
                             """,
                             (existing[0], existing[1], price),
                         )
+                    upsert_product_document(str(existing[0]))
                 else:
-                    conn.execute(
+                    created = conn.execute(
                         """
                         INSERT INTO products (
                           name,
@@ -134,6 +137,7 @@ def process_job(job_id: str) -> None:
                           is_featured
                         )
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id
                         """,
                         (
                             name,
@@ -146,7 +150,8 @@ def process_job(job_id: str) -> None:
                             status,
                             is_featured,
                         ),
-                    )
+                    ).fetchone()
+                    upsert_product_document(str(created[0]))
 
                 success += 1
             except (
@@ -210,6 +215,7 @@ def process_job(job_id: str) -> None:
 
 def main() -> None:
     init_pool()
+    init_search()
     settings = get_settings()
     parameters = pika.URLParameters(
         os.getenv(

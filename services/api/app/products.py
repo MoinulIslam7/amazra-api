@@ -9,6 +9,7 @@ from psycopg.types.json import Json
 
 from .db import get_connection
 from .deps import require_admin
+from .search_index import delete_product_document, upsert_product_document
 from .storage import (
     delete_objects,
     generate_image_set_id,
@@ -248,6 +249,7 @@ def create_product(payload: ProductRequest, user=Depends(require_admin)):
                 detail="Product slug exists",
             ) from exc
 
+    upsert_product_document(str(row[0]))
     return {"id": str(row[0])}
 
 
@@ -321,6 +323,7 @@ def update_product(
                 (product_id, existing[0], payload.price),
             )
 
+    upsert_product_document(product_id)
     return {"status": "updated"}
 
 
@@ -338,6 +341,7 @@ def delete_product(product_id: str, user=Depends(require_admin)):
 
     if updated.rowcount == 0:
         raise HTTPException(status_code=404, detail="Product not found")
+    delete_product_document(product_id)
     return {"status": "discontinued"}
 
 
@@ -358,6 +362,10 @@ def update_status(
         )
     if updated.rowcount == 0:
         raise HTTPException(status_code=404, detail="Product not found")
+    if payload.status == "active":
+        upsert_product_document(product_id)
+    else:
+        delete_product_document(product_id)
     return {"status": "updated"}
 
 
