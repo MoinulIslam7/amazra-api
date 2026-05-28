@@ -186,16 +186,18 @@ Authenticated users can manage their profile and saved delivery addresses.
 
 ### Goal
 
-Full category hierarchy (3 levels deep) stored and retrievable. Admin can manage categories.
+Full category hierarchy (unlimited depth) stored and retrievable. Admin can manage
+categories via dedicated admin endpoints.
 
 ### Tasks
 
 - [ ] Create `categories` table (self-referencing, `parent_id`)
 - [ ] `GET /categories` — return full tree (nested JSON)
 - [ ] `GET /categories/:slug` — single category with children
-- [ ] `POST /categories` — create category (admin only)
-- [ ] `PUT /categories/:id` — update category
-- [ ] `DELETE /categories/:id` — soft delete (only if no products)
+- [ ] `GET /admin/categories` — admin list/category tree
+- [ ] `POST /admin/categories` — create category (admin only)
+- [ ] `PUT /admin/categories/:id` — update category
+- [ ] `DELETE /admin/categories/:id` — soft delete (only if no products)
 - [ ] Seed all 20+ top-level Star Tech categories
 - [ ] Seed 50+ sub-categories with correct parent linkage
 - [ ] Cache category tree in Redis (TTL 1 hour, invalidate on update)
