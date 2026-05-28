@@ -35,6 +35,8 @@ class Settings:
     import_queue_name: str
     search_reindex_queue_name: str
     low_stock_queue_name: str
+    order_placed_queue_name: str
+    refund_queue_name: str
     search_index_alias: str
     search_index_prefix: str
     local_storage_path: str
@@ -80,6 +82,10 @@ def get_settings() -> Settings:
         low_stock_queue_name=os.getenv(
             "LOW_STOCK_QUEUE_NAME", "inventory_low_stock"
         ),
+        order_placed_queue_name=os.getenv(
+            "ORDER_PLACED_QUEUE_NAME", "order_placed"
+        ),
+        refund_queue_name=os.getenv("REFUND_QUEUE_NAME", "payment_refunds"),
         search_index_alias=os.getenv("SEARCH_INDEX_ALIAS", "products"),
         search_index_prefix=os.getenv("SEARCH_INDEX_PREFIX", "products"),
         local_storage_path=os.getenv("LOCAL_STORAGE_PATH", "storage"),
