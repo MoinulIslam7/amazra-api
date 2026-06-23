@@ -36,20 +36,21 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 
 ### Scale at a Glance
 
-| Metric | Value |
-|---|---|
-| Brands | 500+ |
-| Top-level categories | 20+ |
-| Sub-categories | 200+ |
-| Physical branches (BD) | 10+ |
-| Customer types | B2C + B2B |
-| Primary market | Bangladesh |
+| Metric                 | Value      |
+| ---------------------- | ---------- |
+| Brands                 | 500+       |
+| Top-level categories   | 20+        |
+| Sub-categories         | 200+       |
+| Physical branches (BD) | 10+        |
+| Customer types         | B2C + B2B  |
+| Primary market         | Bangladesh |
 
 ---
 
 ## 2. User Personas
 
 ### End Consumer (B2C)
+
 - Buys laptops, phones, accessories, and PC components
 - Uses the PC Builder tool to configure custom rigs
 - Compares specs between products and reads reviews
@@ -57,18 +58,21 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Tracks orders via SMS and the website
 
 ### Corporate / B2B Buyer
+
 - Places bulk orders for servers, switches, printers, and office equipment
 - Requires tax invoices, credit terms, and formal quotations
 - May request installation or after-sales service
 - Often has a dedicated sales rep point-of-contact
 
 ### Admin / Staff
+
 - Manages products, inventory levels, and orders from the admin dashboard
 - Has branch-level or HQ-level access based on role
 - Handles warranty claims, returns, and refunds
 - Generates sales reports and inventory snapshots
 
 ### Vendor / Supplier
+
 - Updates stock feeds and product pricing
 - Manages purchase order acknowledgements
 - May access a restricted supplier portal
@@ -80,6 +84,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 ### 3.1 Customer-Facing Features
 
 #### Discovery & Search
+
 - Full-text product search with autocomplete/suggestions
 - Filter by brand, price range, specs, and availability
 - Category and deep sub-category browsing
@@ -87,6 +92,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Product comparison (side-by-side spec table)
 
 #### PC Builder Tool
+
 - Select components slot by slot (CPU, Motherboard, RAM, GPU, Storage, PSU, Case, Cooler)
 - Real-time **compatibility engine** (socket match, RAM type, PSU wattage, case clearance)
 - Live price total and stock availability check
@@ -95,6 +101,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Intel and Ryzen preset starting configurations
 
 #### Cart & Checkout
+
 - Guest cart (Redis-backed) and logged-in persistent cart
 - Coupon and promo code application
 - Multiple saved delivery addresses
@@ -102,6 +109,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Order summary review before payment
 
 #### Payments
+
 - **bKash** (mobile banking)
 - **Nagad** (mobile banking)
 - **Rocket** (mobile banking)
@@ -111,6 +119,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - **EMI** options via partner banks
 
 #### User Account
+
 - Registration and login (email/phone + OTP)
 - Order history and real-time order tracking
 - Wishlist management
@@ -118,18 +127,21 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Loyalty / reward points balance
 
 #### Reviews & Ratings
+
 - Verified-purchase product reviews
 - Star ratings (1–5)
 - Product Q&A section
 - Helpfulness votes on reviews
 
 #### Notifications
+
 - Order status updates via SMS and email
 - Price drop alerts for wishlisted items
 - Back-in-stock notifications
 - Promotional offer and deal alerts
 
 #### Offers & Deals
+
 - Flash sales (e.g., Eid Deals, special offers)
 - Bundle discounts
 - Gift cards
@@ -140,6 +152,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 ### 3.2 Admin / Back-Office Features
 
 #### Product Management
+
 - Rich product editor (name, specs, images, description, SEO fields)
 - Variant management (e.g., colour, storage size)
 - Bulk import/export via CSV
@@ -147,6 +160,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Product status: active / draft / discontinued
 
 #### Inventory Management
+
 - Per-branch stock levels
 - Low-stock threshold alerts
 - Stock transfer requests between branches
@@ -154,6 +168,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Serial number / IMEI tracking for high-value items
 
 #### Order Management
+
 - Full order lifecycle: placed → confirmed → packed → shipped → delivered → returned
 - Manual order creation (for phone/walk-in orders)
 - Return and refund workflows
@@ -161,6 +176,7 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Invoice and packing slip generation
 
 #### Analytics & Reporting
+
 - Sales dashboard (daily, weekly, monthly)
 - Revenue breakdown by branch, category, and brand
 - Top-selling products report
@@ -168,12 +184,14 @@ Star Tech BD (`startech.com.bd`) operates as both an **online e-commerce platfor
 - Export reports to Excel / PDF
 
 #### Logistics Management
+
 - Delivery partner API integration
 - Zone-based shipping rate configuration
 - Tracking number linking per order
 - **Click & Collect** (in-store pickup at chosen branch)
 
 #### Branch Management
+
 - Per-branch stock and order views
 - Branch-specific pricing overrides
 - Staff account and role management per branch
@@ -222,20 +240,20 @@ The platform follows a **microservices architecture** with clear separation of c
 
 ## 5. Microservices Breakdown
 
-| Service | Responsibility |
-|---|---|
-| **Order Service** | Order lifecycle, returns, refunds, invoice generation |
-| **Product Service** | Product CRUD, categories, brands, SEO metadata |
-| **Inventory Service** | Multi-branch stock levels, reservations, transfers |
-| **User Service** | Registration, authentication, profiles, loyalty points |
-| **Payment Service** | Gateway integration, payment sessions, callbacks, reconciliation |
-| **Delivery Service** | Courier API integration, tracking, shipping zones |
-| **Notification Service** | SMS, email, push notification dispatch |
-| **Search Service** | Elasticsearch indexing, full-text search, facets, autocomplete |
-| **Offer / Promo Service** | Coupon codes, flash sales, bundle rules, gift cards |
-| **Analytics Service** | Event ingestion, reporting queries, dashboard aggregations |
-| **PC Builder Service** | Compatibility matrix, build saving/sharing, build-to-cart |
-| **Branch Service** | Branch configuration, POS integration, staff management |
+| Service                   | Responsibility                                                   |
+| ------------------------- | ---------------------------------------------------------------- |
+| **Order Service**         | Order lifecycle, returns, refunds, invoice generation            |
+| **Product Service**       | Product CRUD, categories, brands, SEO metadata                   |
+| **Inventory Service**     | Multi-branch stock levels, reservations, transfers               |
+| **User Service**          | Registration, authentication, profiles, loyalty points           |
+| **Payment Service**       | Gateway integration, payment sessions, callbacks, reconciliation |
+| **Delivery Service**      | Courier API integration, tracking, shipping zones                |
+| **Notification Service**  | SMS, email, push notification dispatch                           |
+| **Search Service**        | Elasticsearch indexing, full-text search, facets, autocomplete   |
+| **Offer / Promo Service** | Coupon codes, flash sales, bundle rules, gift cards              |
+| **Analytics Service**     | Event ingestion, reporting queries, dashboard aggregations       |
+| **PC Builder Service**    | Compatibility matrix, build saving/sharing, build-to-cart        |
+| **Branch Service**        | Branch configuration, POS integration, staff management          |
 
 ### Service Communication
 
@@ -347,6 +365,9 @@ CREATE TABLE categories (
   is_active   BOOLEAN DEFAULT TRUE
 );
 ```
+
+Categories are stored as a self-referencing tree with unlimited depth. Admin CRUD is
+exposed via `/api/v1/admin/categories` and guarded by admin/staff roles.
 
 ### PC Builds Table
 
@@ -499,45 +520,45 @@ WHERE
 
 ### Frontend
 
-| Layer | Technology | Reason |
-|---|---|---|
-| Web App | **Next.js 14** (App Router) | SSR/SSG for SEO, fast page loads |
-| Mobile App | **React Native** (Expo) | iOS + Android from one codebase |
-| Admin Dashboard | **React + Vite** | SPA, fast iteration |
-| State Management | **Zustand + React Query** | Client state + server cache sync |
-| Styling | **Tailwind CSS + shadcn/ui** | Rapid UI, consistent design |
+| Layer            | Technology                   | Reason                           |
+| ---------------- | ---------------------------- | -------------------------------- |
+| Web App          | **Next.js 14** (App Router)  | SSR/SSG for SEO, fast page loads |
+| Mobile App       | **React Native** (Expo)      | iOS + Android from one codebase  |
+| Admin Dashboard  | **React + Vite**             | SPA, fast iteration              |
+| State Management | **Zustand + React Query**    | Client state + server cache sync |
+| Styling          | **Tailwind CSS + shadcn/ui** | Rapid UI, consistent design      |
 
 ### Backend
 
-| Layer | Technology | Reason |
-|---|---|---|
-| Core API Services | **NestJS (Node.js + TypeScript)** | Modular, DI, well-suited for microservices |
-| High-throughput services | **Go** | Inventory Service, Search aggregation |
-| API Gateway | **Kong** | Rate limiting, auth, routing, plugins |
-| Authentication | **JWT + OTP (SMS)** | Stateless, refresh tokens, role-based |
+| Layer                    | Technology                        | Reason                                     |
+| ------------------------ | --------------------------------- | ------------------------------------------ |
+| Core API Services        | **NestJS (Node.js + TypeScript)** | Modular, DI, well-suited for microservices |
+| High-throughput services | **Go**                            | Inventory Service, Search aggregation      |
+| API Gateway              | **Kong**                          | Rate limiting, auth, routing, plugins      |
+| Authentication           | **JWT + OTP (SMS)**               | Stateless, refresh tokens, role-based      |
 
 ### Data & Storage
 
-| Store | Technology | Used For |
-|---|---|---|
-| Primary database | **PostgreSQL 16** | Users, orders, products, inventory |
-| Cache | **Redis 7** | Cart, sessions, price cache, autocomplete |
-| Search | **Elasticsearch 8** | Full-text search, facets, filters |
-| Analytics | **ClickHouse** | Fast OLAP, sales reports, funnel analysis |
-| Object storage | **AWS S3 / DO Spaces** | Product images, invoices, export files |
-| Flexible attributes | **MongoDB** | Per-category spec schemas (camera specs ≠ RAM specs) |
+| Store               | Technology             | Used For                                             |
+| ------------------- | ---------------------- | ---------------------------------------------------- |
+| Primary database    | **PostgreSQL 16**      | Users, orders, products, inventory                   |
+| Cache               | **Redis 7**            | Cart, sessions, price cache, autocomplete            |
+| Search              | **Elasticsearch 8**    | Full-text search, facets, filters                    |
+| Analytics           | **ClickHouse**         | Fast OLAP, sales reports, funnel analysis            |
+| Object storage      | **AWS S3 / DO Spaces** | Product images, invoices, export files               |
+| Flexible attributes | **MongoDB**            | Per-category spec schemas (camera specs ≠ RAM specs) |
 
 ### Infrastructure
 
-| Component | Technology |
-|---|---|
-| Containerisation | Docker + Kubernetes (EKS/GKE) |
-| CI/CD | GitHub Actions |
-| Message queue | RabbitMQ / Apache Kafka |
-| Monitoring | Prometheus + Grafana |
-| Error tracking | Sentry |
-| CDN / WAF | Cloudflare |
-| Cloud region | AWS `ap-south-1` (Mumbai) — lowest latency from BD |
+| Component        | Technology                                         |
+| ---------------- | -------------------------------------------------- |
+| Containerisation | Docker + Kubernetes (EKS/GKE)                      |
+| CI/CD            | GitHub Actions                                     |
+| Message queue    | RabbitMQ / Apache Kafka                            |
+| Monitoring       | Prometheus + Grafana                               |
+| Error tracking   | Sentry                                             |
+| CDN / WAF        | Cloudflare                                         |
+| Cloud region     | AWS `ap-south-1` (Mumbai) — lowest latency from BD |
 
 ---
 
@@ -545,37 +566,37 @@ WHERE
 
 ### Payment Gateways
 
-| Gateway | Type | Notes |
-|---|---|---|
-| **SSLCOMMERZ** | Aggregator | Cards, net banking, mobile banking |
-| **bKash** | Mobile wallet | Most popular in Bangladesh |
-| **Nagad** | Mobile wallet | Government-backed, growing fast |
-| **Rocket** | Mobile wallet | DBBL mobile banking |
+| Gateway        | Type          | Notes                              |
+| -------------- | ------------- | ---------------------------------- |
+| **SSLCOMMERZ** | Aggregator    | Cards, net banking, mobile banking |
+| **bKash**      | Mobile wallet | Most popular in Bangladesh         |
+| **Nagad**      | Mobile wallet | Government-backed, growing fast    |
+| **Rocket**     | Mobile wallet | DBBL mobile banking                |
 
 ### Delivery Partners
 
-| Partner | Type |
-|---|---|
-| **Pathao** | Last-mile delivery API |
-| **Steadfast** | Courier API |
-| **RedX** | Courier API |
+| Partner           | Type                    |
+| ----------------- | ----------------------- |
+| **Pathao**        | Last-mile delivery API  |
+| **Steadfast**     | Courier API             |
+| **RedX**          | Courier API             |
 | **Self-delivery** | Branch-managed delivery |
 
 ### Communication
 
-| Service | Used For |
-|---|---|
-| **Twilio / local BD SMS provider** | OTP, order status SMS |
-| **SendGrid / SES** | Transactional email |
-| **Firebase FCM** | Mobile push notifications |
+| Service                            | Used For                  |
+| ---------------------------------- | ------------------------- |
+| **Twilio / local BD SMS provider** | OTP, order status SMS     |
+| **SendGrid / SES**                 | Transactional email       |
+| **Firebase FCM**                   | Mobile push notifications |
 
 ### Analytics & Marketing
 
-| Tool | Purpose |
-|---|---|
+| Tool               | Purpose                         |
+| ------------------ | ------------------------------- |
 | Google Analytics 4 | Traffic and conversion tracking |
-| Facebook Pixel | Ad retargeting |
-| Hotjar | Heatmaps, session recording |
+| Facebook Pixel     | Ad retargeting                  |
+| Hotjar             | Heatmaps, session recording     |
 
 ---
 
@@ -583,41 +604,41 @@ WHERE
 
 ### Performance Targets
 
-| Metric | Target |
-|---|---|
-| Web page load (P95) | < 2 seconds |
-| Search API response | < 300 ms |
-| Checkout API latency | < 500 ms |
-| Payment callback handling | < 1 second |
-| Inventory deduction | < 100 ms |
-| CDN cache hit ratio | > 85% |
+| Metric                    | Target      |
+| ------------------------- | ----------- |
+| Web page load (P95)       | < 2 seconds |
+| Search API response       | < 300 ms    |
+| Checkout API latency      | < 500 ms    |
+| Payment callback handling | < 1 second  |
+| Inventory deduction       | < 100 ms    |
+| CDN cache hit ratio       | > 85%       |
 
 ### Availability & Scalability
 
-| Requirement | Target |
-|---|---|
-| Platform uptime | 99.9% (≤ 8.7 hours downtime/year) |
-| Peak load handling | 10× normal traffic (Eid sales, flash deals) |
+| Requirement        | Target                                               |
+| ------------------ | ---------------------------------------------------- |
+| Platform uptime    | 99.9% (≤ 8.7 hours downtime/year)                    |
+| Peak load handling | 10× normal traffic (Eid sales, flash deals)          |
 | Horizontal scaling | All services are stateless, scale via Kubernetes HPA |
-| Database reads | Read replicas for product catalogue queries |
-| Cart / session | Redis cluster with replication |
-| Message queue | Kafka with consumer group auto-scaling |
+| Database reads     | Read replicas for product catalogue queries          |
+| Cart / session     | Redis cluster with replication                       |
+| Message queue      | Kafka with consumer group auto-scaling               |
 
 ---
 
 ## 11. Bangladesh-Specific Considerations
 
-| Consideration | Implementation |
-|---|---|
-| **Mobile-first traffic** | ~70% of visits from mobile; responsive UI, touch-optimised |
-| **Low bandwidth** | WebP images, lazy loading, < 200KB initial JS bundle |
-| **Local payment methods** | bKash, Nagad, Rocket, COD — not just cards |
-| **Bangla language support** | i18n framework; Bangla product names, UI strings |
-| **Service worker / offline** | Cache product pages for intermittent 3G connectivity |
-| **Low hosting latency** | AWS ap-south-1 (Mumbai) — closest region to Dhaka |
-| **COD fraud mitigation** | COD order limit cap, phone OTP verification before dispatch |
-| **National holidays** | Special deal campaigns for Eid, Puja, Independence Day |
-| **B2B invoicing** | VAT-compliant invoices per NBR (Bangladesh Revenue) rules |
+| Consideration                | Implementation                                              |
+| ---------------------------- | ----------------------------------------------------------- |
+| **Mobile-first traffic**     | ~70% of visits from mobile; responsive UI, touch-optimised  |
+| **Low bandwidth**            | WebP images, lazy loading, < 200KB initial JS bundle        |
+| **Local payment methods**    | bKash, Nagad, Rocket, COD — not just cards                  |
+| **Bangla language support**  | i18n framework; Bangla product names, UI strings            |
+| **Service worker / offline** | Cache product pages for intermittent 3G connectivity        |
+| **Low hosting latency**      | AWS ap-south-1 (Mumbai) — closest region to Dhaka           |
+| **COD fraud mitigation**     | COD order limit cap, phone OTP verification before dispatch |
+| **National holidays**        | Special deal campaigns for Eid, Puja, Independence Day      |
+| **B2B invoicing**            | VAT-compliant invoices per NBR (Bangladesh Revenue) rules   |
 
 ---
 
@@ -643,8 +664,8 @@ spec:
         - name: order-service
           image: startech/order-service:latest
           resources:
-            requests: { cpu: "100m", memory: "256Mi" }
-            limits:   { cpu: "500m", memory: "512Mi" }
+            requests: { cpu: '100m', memory: '256Mi' }
+            limits: { cpu: '500m', memory: '512Mi' }
 ```
 
 ### CI/CD Pipeline (GitHub Actions)
@@ -781,4 +802,4 @@ This system design document is for educational and planning purposes, based on p
 
 ---
 
-*Last updated: May 2026*
+_Last updated: May 2026_

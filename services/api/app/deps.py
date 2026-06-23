@@ -6,12 +6,11 @@ from .redis_client import get_redis
 from .security import decode_token
 
 bearer_scheme = HTTPBearer()
+optional_bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-):
-    token = credentials.credentials
+def _resolve_user(token: str) -> dict:
+    """Decode and validate an access token, then load the user record."""
     try:
         payload = decode_token(token)
     except Exception as exc:  # noqa: BLE001 - surface auth failures explicitly
@@ -61,7 +60,26 @@ def get_current_user(
     }
 
 
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+):
+    """Return the authenticated user or raise if credentials are missing."""
+    return _resolve_user(credentials.credentials)
+
+
+def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(
+        optional_bearer_scheme
+    ),
+):
+    """Return the user if a bearer token is provided; otherwise return None."""
+    if not credentials:
+        return None
+    return _resolve_user(credentials.credentials)
+
+
 def require_admin(user=Depends(get_current_user)):
+    """Require admin or staff role for privileged endpoints."""
     if user["role"] not in {"admin", "staff"}:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user

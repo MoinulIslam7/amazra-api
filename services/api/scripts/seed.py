@@ -31,17 +31,23 @@ def seed_roles(conn: psycopg.Connection) -> None:
 
 def seed_branches(conn: psycopg.Connection) -> None:
     branches = [
-        ("Dhaka HQ", "DHK-HQ", "12/B, Tech Street", "Dhaka"),
-        ("Chattogram", "CTG-01", "45/2, Commerce Road", "Chattogram"),
+        ("Dhaka HQ", "DHK-HQ", "12/B, Tech Street", "Dhaka", "+8801999000000"),
+        (
+            "Chattogram",
+            "CTG-01",
+            "45/2, Commerce Road",
+            "Chattogram",
+            "+8801999000001",
+        ),
     ]
-    for name, code, address, city in branches:
+    for name, code, address, city, phone in branches:
         conn.execute(
             """
-            INSERT INTO branches (name, code, address, city)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO branches (name, code, address, city, phone, is_active)
+            VALUES (%s, %s, %s, %s, %s, TRUE)
             ON CONFLICT (code) DO NOTHING;
             """,
-            (name, code, address, city),
+            (name, code, address, city, phone),
         )
 
 
