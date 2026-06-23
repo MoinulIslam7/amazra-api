@@ -31,6 +31,58 @@ admin_router = APIRouter(prefix="/admin/payments", tags=["payments"])
 
 _BKASH_TOKEN_REDIS_KEY = "bkash:access_token"
 _GATEWAY_TIMEOUT = 15.0  # seconds for all external gateway calls
+_ALL_GATEWAYS = ("sslcommerz", "bkash", "nagad", "cod")
+
+
+# ---------------------------------------------------------------------------
+# Gateway availability — driven entirely by env var presence
+# ---------------------------------------------------------------------------
+
+
+def _available_gateways(settings) -> list[str]:
+    """Return gateways that have all required credentials set in the environment.
+
+    COD requires no external keys and is always included.
+    Every other gateway is included only when every required key is non-empty.
+    """
+    available = ["cod"]
+    if settings.sslcommerz_store_id and settings.sslcommerz_store_pass:
+        available.append("sslcommerz")
+    if all(
+        [
+            settings.bkash_username,
+            settings.bkash_password,
+            settings.bkash_app_key,
+            settings.bkash_app_secret,
+        ]
+    ):
+        available.append("bkash")
+    if all(
+        [
+            settings.nagad_merchant_id,
+            settings.nagad_merchant_private_key,
+            settings.nagad_public_key,
+        ]
+    ):
+        available.append("nagad")
+    return available
+
+
+@router.get("/methods")
+def list_payment_methods():
+    """Return which payment gateways are available based on configured credentials.
+
+    Gateways whose API keys are absent from the environment are listed under
+    ``unavailable`` — only COD will be present in ``available`` in that case.
+    """
+    settings = get_settings()
+    available = _available_gateways(settings)
+    unavailable = [g for g in _ALL_GATEWAYS if g not in available]
+    return {
+        "available": available,
+        "unavailable": unavailable,
+        "cod_max_order_amount": settings.cod_max_order_amount,
+    }
 
 
 # ---------------------------------------------------------------------------

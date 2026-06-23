@@ -75,11 +75,28 @@ services:
     env_file:
       - .env
     environment:
+      # ── Infrastructure (container-internal hostnames override .env) ──────────
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-amazra}
       DATABASE_POOL_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@pgbouncer:6432/${POSTGRES_DB:-amazra}
       REDIS_URL: redis://redis:6379
       ELASTICSEARCH_URL: http://elasticsearch:9200
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      # ── Phase 4: Payment gateways (forwarded from .env; empty = disabled) ────
+      SSLCOMMERZ_STORE_ID: ${SSLCOMMERZ_STORE_ID:-}
+      SSLCOMMERZ_STORE_PASS: ${SSLCOMMERZ_STORE_PASS:-}
+      SSLCOMMERZ_IS_SANDBOX: ${SSLCOMMERZ_IS_SANDBOX:-true}
+      BKASH_BASE_URL: ${BKASH_BASE_URL:-https://tokenized.sandbox.bka.sh/v1.2.0-beta}
+      BKASH_USERNAME: ${BKASH_USERNAME:-}
+      BKASH_PASSWORD: ${BKASH_PASSWORD:-}
+      BKASH_APP_KEY: ${BKASH_APP_KEY:-}
+      BKASH_APP_SECRET: ${BKASH_APP_SECRET:-}
+      NAGAD_BASE_URL: ${NAGAD_BASE_URL:-https://sandbox.mynagad.com:10080/remote-payment-gateway-1.0}
+      NAGAD_MERCHANT_ID: ${NAGAD_MERCHANT_ID:-}
+      NAGAD_MERCHANT_PRIVATE_KEY: ${NAGAD_MERCHANT_PRIVATE_KEY:-}
+      NAGAD_PUBLIC_KEY: ${NAGAD_PUBLIC_KEY:-}
+      COD_MAX_ORDER_AMOUNT: ${COD_MAX_ORDER_AMOUNT:-50000}
+      PAYMENT_CONFIRMED_QUEUE_NAME: ${PAYMENT_CONFIRMED_QUEUE_NAME:-payment_confirmed}
+      PAYMENT_FAILED_QUEUE_NAME: ${PAYMENT_FAILED_QUEUE_NAME:-payment_failed}
     depends_on:
       - postgres
       - pgbouncer

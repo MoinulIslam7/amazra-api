@@ -180,6 +180,24 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
     """Place an order from the user's cart."""
     settings = get_settings()
 
+    # Validate the requested payment method is configured before touching the DB.
+    # _available_gateways is imported locally to avoid a circular module dependency.
+    from .payments import _available_gateways  # noqa: PLC0415
+
+    available = _available_gateways(settings)
+    if payload.payment_method not in available:
+        if payload.payment_method in ("sslcommerz", "bkash", "nagad"):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"Payment method '{payload.payment_method}' is not configured. "
+                    f"Available methods: {', '.join(available)}."
+                ),
+            )
+        raise HTTPException(
+            status_code=422, detail="Unsupported payment method"
+        )
+
     with get_connection() as conn:
         with conn.transaction():
             cart_id, applied_coupon_id = _load_cart(conn, user["id"])
