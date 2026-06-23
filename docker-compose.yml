@@ -5,9 +5,9 @@ services:
     ports:
       - '${POSTGRES_PORT:-5433}:5432'
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-amazra}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -21,9 +21,9 @@ services:
     environment:
       DATABASES_HOST: postgres
       DATABASES_PORT: 5432
-      DATABASES_USER: ${POSTGRES_USER:-postgres}
-      DATABASES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DATABASES_DBNAME: ${POSTGRES_DB:-amazra}
+      DATABASES_USER: ${POSTGRES_USER}
+      DATABASES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASES_DBNAME: ${POSTGRES_DB}
       PGBOUNCER_LISTEN_PORT: 6432
       PGBOUNCER_AUTH_TYPE: plain
       PGBOUNCER_AUTH_FILE: /etc/pgbouncer/userlist.txt
@@ -75,52 +75,12 @@ services:
     env_file:
       - .env
     environment:
-      # ── Infrastructure (container-internal hostnames override .env) ──────────
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-amazra}
-      DATABASE_POOL_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@pgbouncer:6432/${POSTGRES_DB:-amazra}
+      # Override only the URLs that differ inside Docker (container hostnames).
+      # All secrets and config come from .env via env_file above.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379
       ELASTICSEARCH_URL: http://elasticsearch:9200
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-      # ── Phase 4: Payment gateways (forwarded from .env; empty = disabled) ────
-      SSLCOMMERZ_STORE_ID: ${SSLCOMMERZ_STORE_ID:-}
-      SSLCOMMERZ_STORE_PASS: ${SSLCOMMERZ_STORE_PASS:-}
-      SSLCOMMERZ_IS_SANDBOX: ${SSLCOMMERZ_IS_SANDBOX:-true}
-      BKASH_BASE_URL: ${BKASH_BASE_URL:-https://tokenized.sandbox.bka.sh/v1.2.0-beta}
-      BKASH_USERNAME: ${BKASH_USERNAME:-}
-      BKASH_PASSWORD: ${BKASH_PASSWORD:-}
-      BKASH_APP_KEY: ${BKASH_APP_KEY:-}
-      BKASH_APP_SECRET: ${BKASH_APP_SECRET:-}
-      NAGAD_BASE_URL: ${NAGAD_BASE_URL:-https://sandbox.mynagad.com:10080/remote-payment-gateway-1.0}
-      NAGAD_MERCHANT_ID: ${NAGAD_MERCHANT_ID:-}
-      NAGAD_MERCHANT_PRIVATE_KEY: ${NAGAD_MERCHANT_PRIVATE_KEY:-}
-      NAGAD_PUBLIC_KEY: ${NAGAD_PUBLIC_KEY:-}
-      COD_MAX_ORDER_AMOUNT: ${COD_MAX_ORDER_AMOUNT:-50000}
-      PAYMENT_CONFIRMED_QUEUE_NAME: ${PAYMENT_CONFIRMED_QUEUE_NAME:-payment_confirmed}
-      PAYMENT_FAILED_QUEUE_NAME: ${PAYMENT_FAILED_QUEUE_NAME:-payment_failed}
-      # ── Phase 5: Delivery (forwarded from .env; empty = disabled) ────────────
-      PATHAO_BASE_URL: ${PATHAO_BASE_URL:-https://hermes.pathao.com}
-      PATHAO_CLIENT_ID: ${PATHAO_CLIENT_ID:-}
-      PATHAO_CLIENT_SECRET: ${PATHAO_CLIENT_SECRET:-}
-      PATHAO_USERNAME: ${PATHAO_USERNAME:-}
-      PATHAO_PASSWORD: ${PATHAO_PASSWORD:-}
-      PATHAO_STORE_ID: ${PATHAO_STORE_ID:-}
-      PATHAO_DEFAULT_CITY_ID: ${PATHAO_DEFAULT_CITY_ID:-1}
-      PATHAO_DEFAULT_ZONE_ID: ${PATHAO_DEFAULT_ZONE_ID:-1}
-      STEADFAST_BASE_URL: ${STEADFAST_BASE_URL:-https://portal.steadfast.com.bd/public/v1}
-      STEADFAST_API_KEY: ${STEADFAST_API_KEY:-}
-      STEADFAST_SECRET_KEY: ${STEADFAST_SECRET_KEY:-}
-      # ── Phase 5: Notifications (forwarded from .env; empty = disabled) ───────
-      SMS_PROVIDER: ${SMS_PROVIDER:-none}
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
-      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:-}
-      GENERIC_SMS_URL: ${GENERIC_SMS_URL:-}
-      GENERIC_SMS_API_KEY: ${GENERIC_SMS_API_KEY:-}
-      GENERIC_SMS_SENDER_ID: ${GENERIC_SMS_SENDER_ID:-}
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
-      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-}
-      SENDGRID_FROM_NAME: ${SENDGRID_FROM_NAME:-Amazra}
-      NOTIFICATION_EVENTS_QUEUE_NAME: ${NOTIFICATION_EVENTS_QUEUE_NAME:-notification_events}
     depends_on:
       - postgres
       - pgbouncer
