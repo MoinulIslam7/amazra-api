@@ -41,6 +41,26 @@ class Settings:
     search_index_prefix: str
     local_storage_path: str
     public_base_url: str
+    # SSLCOMMERZ
+    sslcommerz_store_id: str | None
+    sslcommerz_store_pass: str | None
+    sslcommerz_is_sandbox: bool
+    # bKash tokenized checkout
+    bkash_base_url: str | None
+    bkash_username: str | None
+    bkash_password: str | None
+    bkash_app_key: str | None
+    bkash_app_secret: str | None
+    # Nagad
+    nagad_base_url: str | None
+    nagad_merchant_id: str | None
+    nagad_merchant_private_key: str | None  # PEM (newlines as \n in env)
+    nagad_public_key: str | None            # Nagad's RSA public key PEM
+    # COD
+    cod_max_order_amount: str  # BDT ceiling; compared as Decimal at runtime
+    # Payment event queues
+    payment_confirmed_queue_name: str
+    payment_failed_queue_name: str
 
 
 def get_settings() -> Settings:
@@ -90,4 +110,28 @@ def get_settings() -> Settings:
         search_index_prefix=os.getenv("SEARCH_INDEX_PREFIX", "products"),
         local_storage_path=os.getenv("LOCAL_STORAGE_PATH", "storage"),
         public_base_url=os.getenv("PUBLIC_BASE_URL", "http://localhost:8001"),
+        # payment gateways
+        sslcommerz_store_id=os.getenv("SSLCOMMERZ_STORE_ID"),
+        sslcommerz_store_pass=os.getenv("SSLCOMMERZ_STORE_PASS"),
+        sslcommerz_is_sandbox=os.getenv("SSLCOMMERZ_IS_SANDBOX", "true").lower() != "false",
+        bkash_base_url=os.getenv(
+            "BKASH_BASE_URL", "https://tokenized.sandbox.bka.sh/v1.2.0-beta"
+        ),
+        bkash_username=os.getenv("BKASH_USERNAME"),
+        bkash_password=os.getenv("BKASH_PASSWORD"),
+        bkash_app_key=os.getenv("BKASH_APP_KEY"),
+        bkash_app_secret=os.getenv("BKASH_APP_SECRET"),
+        nagad_base_url=os.getenv(
+            "NAGAD_BASE_URL", "https://sandbox.mynagad.com:10080/remote-payment-gateway-1.0"
+        ),
+        nagad_merchant_id=os.getenv("NAGAD_MERCHANT_ID"),
+        nagad_merchant_private_key=_normalize_pem(os.getenv("NAGAD_MERCHANT_PRIVATE_KEY")),
+        nagad_public_key=_normalize_pem(os.getenv("NAGAD_PUBLIC_KEY")),
+        cod_max_order_amount=os.getenv("COD_MAX_ORDER_AMOUNT", "50000"),
+        payment_confirmed_queue_name=os.getenv(
+            "PAYMENT_CONFIRMED_QUEUE_NAME", "payment_confirmed"
+        ),
+        payment_failed_queue_name=os.getenv(
+            "PAYMENT_FAILED_QUEUE_NAME", "payment_failed"
+        ),
     )

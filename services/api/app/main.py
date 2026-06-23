@@ -18,6 +18,8 @@ from .orders import router as orders_router
 from .products import admin_router as admin_products_router
 from .products import router as products_router
 from .redis_client import init_redis
+from .payments import admin_router as admin_payments_router
+from .payments import router as payments_router
 from .returns import admin_router as admin_returns_router
 from .returns import admin_warranty_router as admin_warranty_router
 from .returns import router as returns_router
@@ -71,3 +73,5 @@ app.include_router(returns_router, prefix="/api/v1")
 app.include_router(admin_returns_router, prefix="/api/v1")
 app.include_router(warranty_router, prefix="/api/v1")
 app.include_router(admin_warranty_router, prefix="/api/v1")
+app.include_router(payments_router, prefix="/api/v1")
+app.include_router(admin_payments_router, prefix="/api/v1")

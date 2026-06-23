@@ -215,6 +215,17 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
                 subtotal - discount_amount + shipping_amount, Decimal("0")
             )
 
+            if payload.payment_method == "cod":
+                cod_limit = Decimal(str(settings.cod_max_order_amount))
+                if total_amount > cod_limit:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"COD orders cannot exceed BDT {cod_limit:,.0f}",
+                    )
+                initial_payment_status = "pending_cod"
+            else:
+                initial_payment_status = "pending"
+
             address_snapshot = _load_address_snapshot(
                 conn, payload.address_id, user["id"]
             )
@@ -292,7 +303,7 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
                     total_amount,
                     discount_amount,
                     shipping_amount,
-                    "pending",
+                    initial_payment_status,
                     payload.payment_method,
                     payload.payment_ref,
                     json.dumps(address_snapshot),
