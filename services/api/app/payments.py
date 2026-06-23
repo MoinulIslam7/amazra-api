@@ -248,6 +248,28 @@ def _publish_payment_event(
     except Exception:  # noqa: BLE001 – queue failures must not abort the response
         pass
 
+    # On payment confirmed, also trigger a customer notification.
+    if event_type == "confirmed":
+        try:
+            with get_connection() as conn:
+                row = conn.execute(
+                    "SELECT reference, user_id, total_amount FROM orders WHERE id = %s",
+                    (order_id,),
+                ).fetchone()
+            if row:
+                publish_message(
+                    settings.notification_events_queue_name,
+                    json.dumps({
+                        "type": "order_confirmed",
+                        "order_id": order_id,
+                        "reference": row[0],
+                        "user_id": str(row[1]),
+                        "total_amount": str(row[2]),
+                    }),
+                )
+        except Exception:  # noqa: BLE001
+            pass
+
 
 # ---------------------------------------------------------------------------
 # SSLCOMMERZ — Milestone 4.1

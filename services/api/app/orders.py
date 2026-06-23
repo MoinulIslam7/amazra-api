@@ -33,10 +33,12 @@ ALLOWED_TRANSITIONS = {
 
 
 class OrderCreateRequest(BaseModel):
-    address_id: str
     payment_method: str = Field(..., min_length=3, max_length=30)
     payment_ref: Optional[str] = Field(None, max_length=200)
     notes: Optional[str] = Field(None, max_length=2000)
+    fulfilment_type: str = Field("delivery", pattern=r"^(delivery|pickup)$")
+    address_id: Optional[str] = None       # required when fulfilment_type=delivery
+    pickup_branch_id: Optional[str] = None  # required when fulfilment_type=pickup
 
 
 class OrderStatusUpdateRequest(BaseModel):
@@ -198,6 +200,16 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
             status_code=422, detail="Unsupported payment method"
         )
 
+    # Validate fulfilment_type / address fields before touching the DB.
+    if payload.fulfilment_type == "delivery" and not payload.address_id:
+        raise HTTPException(
+            status_code=422, detail="address_id is required for delivery orders"
+        )
+    if payload.fulfilment_type == "pickup" and not payload.pickup_branch_id:
+        raise HTTPException(
+            status_code=422, detail="pickup_branch_id is required for pickup orders"
+        )
+
     with get_connection() as conn:
         with conn.transaction():
             cart_id, applied_coupon_id = _load_cart(conn, user["id"])
@@ -244,9 +256,34 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
             else:
                 initial_payment_status = "pending"
 
-            address_snapshot = _load_address_snapshot(
-                conn, payload.address_id, user["id"]
-            )
+            if payload.fulfilment_type == "pickup":
+                branch_row = conn.execute(
+                    """
+                    SELECT name, address, city, phone, is_pickup_available
+                    FROM branches WHERE id = %s AND is_active
+                    """,
+                    (payload.pickup_branch_id,),
+                ).fetchone()
+                if not branch_row:
+                    raise HTTPException(
+                        status_code=404, detail="Pickup branch not found or inactive"
+                    )
+                if not branch_row[4]:
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Selected branch does not support pickup",
+                    )
+                address_snapshot = {
+                    "pickup": True,
+                    "branch_name": branch_row[0],
+                    "branch_address": branch_row[1],
+                    "city": branch_row[2],
+                    "phone": branch_row[3],
+                }
+            else:
+                address_snapshot = _load_address_snapshot(
+                    conn, payload.address_id, user["id"]
+                )
             reference = _next_order_reference(conn)
 
             reservation_key = f"cart:{cart_id}"
@@ -308,9 +345,11 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
                   payment_ref,
                   delivery_address,
                   notes,
-                  coupon_id
+                  coupon_id,
+                  fulfilment_type,
+                  pickup_branch_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
                 (
@@ -327,6 +366,8 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
                     json.dumps(address_snapshot),
                     payload.notes,
                     coupon_row[0] if coupon_row else None,
+                    payload.fulfilment_type,
+                    payload.pickup_branch_id,
                 ),
             ).fetchone()
             order_id = str(order_row[0])
@@ -420,6 +461,23 @@ def place_order(payload: OrderCreateRequest, user=Depends(get_current_user)):
         ],
     }
     publish_message(settings.order_placed_queue_name, json.dumps(event_payload))
+
+    # Notify the customer immediately on confirmed/COD orders.
+    if payload.payment_method == "cod":
+        try:
+            publish_message(
+                settings.notification_events_queue_name,
+                json.dumps({
+                    "type": "order_confirmed",
+                    "order_id": order_id,
+                    "reference": reference,
+                    "user_id": user["id"],
+                    "total_amount": str(total_amount),
+                }),
+            )
+        except Exception:  # noqa: BLE001
+            pass  # best-effort; don't fail the request
+
     return {"order_id": order_id, "reference": reference}
 
 

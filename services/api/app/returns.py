@@ -215,12 +215,17 @@ def update_return_status(
             UPDATE return_requests
             SET status = %s, updated_at = NOW()
             WHERE id = %s
-            RETURNING order_id
+            RETURNING order_id, user_id
             """,
             (payload.status, return_id),
         ).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Return not found")
+
+        if payload.status == "approved":
+            order_ref = conn.execute(
+                "SELECT reference FROM orders WHERE id = %s", (row[0],)
+            ).fetchone()
 
     if payload.status == "approved":
         publish_message(
@@ -233,6 +238,18 @@ def update_return_status(
                 }
             ),
         )
+        try:
+            publish_message(
+                settings.notification_events_queue_name,
+                json.dumps({
+                    "type": "return_approved",
+                    "order_id": str(row[0]),
+                    "user_id": str(row[1]),
+                    "reference": order_ref[0] if order_ref else "",
+                }),
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
     return {"status": payload.status}
 
