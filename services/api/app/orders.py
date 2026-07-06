@@ -848,6 +848,161 @@ def export_orders(
     return PlainTextResponse(output.getvalue(), headers=headers)
 
 
+@admin_router.get("/{order_id}/invoice")
+def admin_get_invoice(order_id: str, user=Depends(require_admin)):
+    """Generate a PDF invoice for any order (admin access)."""
+    with get_connection() as conn:
+        order = conn.execute(
+            """
+            SELECT
+              o.id,
+              o.reference,
+              o.total_amount,
+              o.discount_amount,
+              o.shipping_amount,
+              o.created_at,
+              u.name
+            FROM orders o
+            JOIN users u ON u.id = o.user_id
+            WHERE o.id = %s
+            """,
+            (order_id,),
+        ).fetchone()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        items = conn.execute(
+            """
+            SELECT p.name, oi.quantity, oi.unit_price, oi.total_price
+            FROM order_items oi
+            JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = %s
+            """,
+            (order_id,),
+        ).fetchall()
+
+    pdf_bytes = _build_invoice_pdf(
+        {
+            "reference": order[1],
+            "total_amount": str(order[2]),
+            "discount_amount": str(order[3]),
+            "shipping_amount": str(order[4]),
+            "subtotal": str(order[2] + order[3] - order[4]),
+            "created_at": order[5].strftime("%Y-%m-%d"),
+            "customer_name": order[6],
+        },
+        [
+            {
+                "product_name": row[0],
+                "quantity": row[1],
+                "unit_price": str(row[2]),
+                "line_total": str(row[3]),
+            }
+            for row in items
+        ],
+    )
+    headers = {
+        "Content-Disposition": f"attachment; filename=invoice-{order[1]}.pdf"
+    }
+    return Response(pdf_bytes, media_type="application/pdf", headers=headers)
+
+
+@admin_router.get("/{order_id}")
+def admin_get_order(order_id: str, user=Depends(require_admin)):
+    """Return full order details for admin, regardless of owner."""
+    with get_connection() as conn:
+        order = conn.execute(
+            """
+            SELECT
+              o.id,
+              o.reference,
+              o.status,
+              o.total_amount,
+              o.discount_amount,
+              o.shipping_amount,
+              o.payment_status,
+              o.payment_method,
+              o.payment_ref,
+              o.delivery_address,
+              o.tracking_number,
+              o.notes,
+              o.created_at,
+              u.name,
+              u.email,
+              u.phone,
+              b.name
+            FROM orders o
+            JOIN users u ON u.id = o.user_id
+            LEFT JOIN branches b ON b.id = o.branch_id
+            WHERE o.id = %s
+            """,
+            (order_id,),
+        ).fetchone()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        items = conn.execute(
+            """
+            SELECT oi.product_id, p.name, oi.quantity, oi.unit_price, oi.total_price
+            FROM order_items oi
+            JOIN products p ON p.id = oi.product_id
+            WHERE oi.order_id = %s
+            """,
+            (order_id,),
+        ).fetchall()
+
+        history = conn.execute(
+            """
+            SELECT osh.status, osh.changed_by, u2.name, osh.changed_at, osh.note
+            FROM order_status_history osh
+            LEFT JOIN users u2 ON u2.id = osh.changed_by
+            WHERE osh.order_id = %s
+            ORDER BY osh.changed_at ASC
+            """,
+            (order_id,),
+        ).fetchall()
+
+    return {
+        "id": str(order[0]),
+        "reference": order[1],
+        "status": order[2],
+        "total_amount": str(order[3]),
+        "discount_amount": str(order[4]),
+        "shipping_amount": str(order[5]),
+        "payment_status": order[6],
+        "payment_method": order[7],
+        "payment_ref": order[8],
+        "delivery_address": order[9],
+        "tracking_number": order[10],
+        "notes": order[11],
+        "created_at": order[12].isoformat(),
+        "customer_name": order[13],
+        "customer_email": order[14],
+        "customer_phone": order[15],
+        "branch_name": order[16],
+        "items": [
+            {
+                "product_id": str(row[0]),
+                "product_name": row[1],
+                "quantity": row[2],
+                "unit_price": str(row[3]),
+                "total_price": str(row[4]),
+            }
+            for row in items
+        ],
+        "status_history": [
+            {
+                "status": row[0],
+                "changed_by": str(row[1]) if row[1] else None,
+                "changed_by_name": row[2],
+                "changed_at": row[3].isoformat(),
+                "note": row[4],
+            }
+            for row in history
+        ],
+    }
+
+
 @admin_router.patch("/{order_id}/status")
 def update_order_status(
     order_id: str,

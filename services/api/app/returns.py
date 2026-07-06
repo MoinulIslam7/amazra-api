@@ -36,6 +36,11 @@ class ReturnStatusUpdateRequest(BaseModel):
     note: Optional[str] = Field(None, max_length=500)
 
 
+class WarrantyStatusUpdateRequest(BaseModel):
+    status: str = Field(..., min_length=3, max_length=30)
+    note: Optional[str] = Field(None, max_length=500)
+
+
 class WarrantyClaimRequest(BaseModel):
     order_id: str
     product_id: str
@@ -166,33 +171,38 @@ def admin_list_returns(
     status: Optional[str] = None, user=Depends(require_admin)
 ):
     """List all return requests for admins."""
+    conditions = []
+    params: list = []
+    if status:
+        conditions.append("rr.status = %s")
+        params.append(status)
+    where_sql = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
     with get_connection() as conn:
-        if status:
-            rows = conn.execute(
-                """
-                SELECT id, order_id, user_id, status, created_at
-                FROM return_requests
-                WHERE status = %s
-                ORDER BY created_at DESC
-                """,
-                (status,),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                """
-                SELECT id, order_id, user_id, status, created_at
-                FROM return_requests
-                ORDER BY created_at DESC
-                """
-            ).fetchall()
+        rows = conn.execute(
+            f"""
+            SELECT rr.id, rr.order_id, o.reference, rr.user_id, u.name,
+                   rr.items, rr.reason, rr.status, rr.created_at
+            FROM return_requests rr
+            JOIN orders o ON o.id = rr.order_id
+            JOIN users u ON u.id = rr.user_id
+            {where_sql}
+            ORDER BY rr.created_at DESC
+            """,
+            params,
+        ).fetchall()
 
     return [
         {
             "id": str(row[0]),
             "order_id": str(row[1]),
-            "user_id": str(row[2]),
-            "status": row[3],
-            "created_at": row[4].isoformat(),
+            "order_reference": row[2],
+            "user_id": str(row[3]),
+            "customer_name": row[4],
+            "items": row[5],
+            "reason": row[6],
+            "status": row[7],
+            "created_at": row[8].isoformat(),
         }
         for row in rows
     ]
@@ -311,25 +321,68 @@ def create_warranty_claim(
 
 
 @admin_warranty_router.get("")
-def list_warranty_claims(user=Depends(require_admin)):
+def list_warranty_claims(status: Optional[str] = None, user=Depends(require_admin)):
     """List warranty claims for administrators."""
+    conditions = []
+    params: list = []
+    if status:
+        conditions.append("wc.status = %s")
+        params.append(status)
+    where_sql = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
     with get_connection() as conn:
         rows = conn.execute(
-            """
-            SELECT id, order_id, product_id, user_id, status, created_at
-            FROM warranty_claims
-            ORDER BY created_at DESC
-            """
+            f"""
+            SELECT wc.id, wc.order_id, o.reference, wc.product_id, p.name,
+                   wc.user_id, u.name, wc.issue_desc, wc.status, wc.created_at
+            FROM warranty_claims wc
+            JOIN orders o ON o.id = wc.order_id
+            JOIN products p ON p.id = wc.product_id
+            JOIN users u ON u.id = wc.user_id
+            {where_sql}
+            ORDER BY wc.created_at DESC
+            """,
+            params,
         ).fetchall()
 
     return [
         {
             "id": str(row[0]),
             "order_id": str(row[1]),
-            "product_id": str(row[2]),
-            "user_id": str(row[3]),
-            "status": row[4],
-            "created_at": row[5].isoformat(),
+            "order_reference": row[2],
+            "product_id": str(row[3]),
+            "product_name": row[4],
+            "user_id": str(row[5]),
+            "customer_name": row[6],
+            "issue_desc": row[7],
+            "status": row[8],
+            "created_at": row[9].isoformat(),
         }
         for row in rows
     ]
+
+
+@admin_warranty_router.patch("/{claim_id}/status")
+def update_warranty_status(
+    claim_id: str,
+    payload: WarrantyStatusUpdateRequest,
+    user=Depends(require_admin),
+):
+    """Update a warranty claim's status (approve/reject/complete)."""
+    if payload.status not in ALLOWED_RETURN_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid warranty status")
+
+    with get_connection() as conn:
+        updated = conn.execute(
+            """
+            UPDATE warranty_claims
+            SET status = %s, updated_at = NOW()
+            WHERE id = %s
+            """,
+            (payload.status, claim_id),
+        )
+
+    if updated.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Warranty claim not found")
+
+    return {"status": payload.status}

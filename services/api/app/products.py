@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from typing import Optional
 
@@ -178,6 +179,15 @@ def get_product(slug: str):
             (row[0],),
         ).fetchall()
 
+        rating_row = conn.execute(
+            """
+            SELECT AVG(rating)::float, COUNT(*)
+            FROM reviews
+            WHERE product_id = %s
+            """,
+            (row[0],),
+        ).fetchone()
+
     return {
         "id": str(row[0]),
         "name": row[1],
@@ -191,6 +201,8 @@ def get_product(slug: str):
         "is_featured": row[9],
         "meta_title": row[10],
         "meta_description": row[11],
+        "average_rating": round(rating_row[0], 1) if rating_row and rating_row[0] else 0,
+        "review_count": rating_row[1] if rating_row else 0,
         "images": [
             {
                 "image_set_id": str(img[0]),
@@ -369,27 +381,110 @@ def update_status(
     return {"status": "updated"}
 
 
-@router.get("/{product_id}/price-history")
-def price_history(product_id: str, user=Depends(require_admin)):
+@router.get("/{product_id_or_slug}/price-history")
+def price_history(product_id_or_slug: str):
+    """Public price-history for a product (last 6 months), by id or slug."""
     with get_connection() as conn:
+        try:
+            uuid.UUID(product_id_or_slug)
+            product_row = conn.execute(
+                "SELECT id, price FROM products WHERE id = %s",
+                (product_id_or_slug,),
+            ).fetchone()
+        except ValueError:
+            product_row = conn.execute(
+                "SELECT id, price FROM products WHERE slug = %s",
+                (product_id_or_slug,),
+            ).fetchone()
+
+        if not product_row:
+            raise HTTPException(status_code=404, detail="Product not found")
+
         rows = conn.execute(
             """
             SELECT old_price, new_price, changed_at
             FROM product_price_history
-            WHERE product_id = %s
-            ORDER BY changed_at DESC
-            LIMIT 12
+            WHERE product_id = %s AND changed_at >= NOW() - INTERVAL '6 months'
+            ORDER BY changed_at ASC
+            LIMIT 24
+            """,
+            (product_row[0],),
+        ).fetchall()
+
+    return {
+        "current_price": str(product_row[1]),
+        "history": [
+            {
+                "old_price": str(row[0]),
+                "new_price": str(row[1]),
+                "changed_at": row[2],
+            }
+            for row in rows
+        ],
+    }
+
+
+@admin_router.get("/{product_id}")
+def admin_get_product(product_id: str, user=Depends(require_admin)):
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT
+              id,
+              name,
+              slug,
+              brand_id,
+              category_id,
+              price,
+              original_price,
+              specs,
+              status,
+              is_featured,
+              meta_title,
+              meta_description
+            FROM products
+            WHERE id = %s
             """,
             (product_id,),
+        ).fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        images = conn.execute(
+            """
+            SELECT image_set_id, url, size, sort_order, is_primary
+            FROM product_images
+            WHERE product_id = %s
+            ORDER BY is_primary DESC, sort_order ASC
+            """,
+            (row[0],),
         ).fetchall()
-    return [
-        {
-            "old_price": str(row[0]),
-            "new_price": str(row[1]),
-            "changed_at": row[2],
-        }
-        for row in rows
-    ]
+
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "slug": row[2],
+        "brand_id": str(row[3]) if row[3] else None,
+        "category_id": str(row[4]) if row[4] else None,
+        "price": str(row[5]),
+        "original_price": str(row[6]) if row[6] else None,
+        "specs": row[7],
+        "status": row[8],
+        "is_featured": row[9],
+        "meta_title": row[10],
+        "meta_description": row[11],
+        "images": [
+            {
+                "image_set_id": str(img[0]),
+                "url": img[1],
+                "size": img[2],
+                "sort_order": img[3],
+                "is_primary": img[4],
+            }
+            for img in images
+        ],
+    }
 
 
 @admin_router.get("")

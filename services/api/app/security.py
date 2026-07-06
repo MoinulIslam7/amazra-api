@@ -4,8 +4,21 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
+import pyotp
 
 from .config import get_settings
+
+
+def generate_totp_secret() -> str:
+    return pyotp.random_base32()
+
+
+def totp_provisioning_uri(secret: str, account_name: str, issuer: str = "Amazra Admin") -> str:
+    return pyotp.TOTP(secret).provisioning_uri(name=account_name, issuer_name=issuer)
+
+
+def verify_totp_code(secret: str, code: str) -> bool:
+    return pyotp.TOTP(secret).verify(code, valid_window=1)
 
 
 def hash_password(password: str) -> str:
