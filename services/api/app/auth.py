@@ -141,8 +141,8 @@ def login(payload: LoginRequest):
                    users.totp_enabled, users.totp_secret
             FROM users
             LEFT JOIN roles ON users.role_id = roles.id
-            WHERE (%s IS NOT NULL AND users.email = %s)
-               OR (%s IS NOT NULL AND users.phone = %s)
+            WHERE (%s::varchar IS NOT NULL AND users.email = %s)
+               OR (%s::varchar IS NOT NULL AND users.phone = %s)
             """,
             (payload.email, payload.email, payload.phone, payload.phone),
         ).fetchone()

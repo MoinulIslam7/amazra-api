@@ -5,21 +5,9 @@ services:
   - name: api
     url: http://api:8000
     routes:
-      - name: health
+      - name: api-v1
         paths:
-          - /api/v1/health
-        strip_path: false
-      - name: products
-        paths:
-          - /api/v1/products
-        strip_path: false
-      - name: orders
-        paths:
-          - /api/v1/orders
-        strip_path: false
-      - name: users
-        paths:
-          - /api/v1/users
+          - /api/v1
         strip_path: false
       - name: media
         paths:
@@ -57,11 +45,3 @@ plugins:
         - Content-Length
       credentials: true
       max_age: 3600
-  - name: jwt
-    route: users
-    config:
-      key_claim_name: iss
-  - name: jwt
-    route: orders
-    config:
-      key_claim_name: iss
