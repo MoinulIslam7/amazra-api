@@ -12,4 +12,6 @@ COPY app ./app
 COPY scripts ./scripts
 COPY db ./db
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+RUN chmod +x scripts/entrypoint.sh
+
+CMD ["sh", "scripts/entrypoint.sh"]
