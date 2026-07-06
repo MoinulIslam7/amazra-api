@@ -2,19 +2,23 @@ import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 
 from .config import get_settings
 from .db import get_connection
+from .deps import get_current_user
 from .redis_client import get_redis
 from .security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    generate_totp_secret,
     hash_password,
     hash_token,
+    totp_provisioning_uri,
     verify_password,
+    verify_totp_code,
 )
 from .validators import validate_bd_phone
 
@@ -32,6 +36,15 @@ class LoginRequest(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     password: str
+    totp_code: Optional[str] = None
+
+
+class TotpEnableRequest(BaseModel):
+    code: str = Field(..., min_length=6, max_length=6)
+
+
+class TotpDisableRequest(BaseModel):
+    code: str = Field(..., min_length=6, max_length=6)
 
 
 class OtpSendRequest(BaseModel):
@@ -124,7 +137,8 @@ def login(payload: LoginRequest):
     with get_connection() as conn:
         row = conn.execute(
             """
-            SELECT users.id, users.password_hash, roles.name, users.is_active
+            SELECT users.id, users.password_hash, roles.name, users.is_active,
+                   users.totp_enabled, users.totp_secret
             FROM users
             LEFT JOIN roles ON users.role_id = roles.id
             WHERE (%s IS NOT NULL AND users.email = %s)
@@ -139,7 +153,63 @@ def login(payload: LoginRequest):
     if not verify_password(payload.password, row[1]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    if row[4]:
+        if not payload.totp_code:
+            return {"requires_2fa": True}
+        if not verify_totp_code(row[5], payload.totp_code):
+            raise HTTPException(status_code=401, detail="Invalid 2FA code")
+
     return _issue_tokens(str(row[0]), row[2] or "customer")
+
+
+@router.post("/2fa/setup")
+def setup_totp(user=Depends(get_current_user)):
+    secret = generate_totp_secret()
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE users SET totp_secret = %s WHERE id = %s",
+            (secret, user["id"]),
+        )
+    return {
+        "secret": secret,
+        "otpauth_uri": totp_provisioning_uri(secret, user["email"] or user["phone"] or user["id"]),
+    }
+
+
+@router.post("/2fa/enable")
+def enable_totp(payload: TotpEnableRequest, user=Depends(get_current_user)):
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT totp_secret FROM users WHERE id = %s",
+            (user["id"],),
+        ).fetchone()
+        if not row or not row[0]:
+            raise HTTPException(status_code=400, detail="Run /2fa/setup first")
+        if not verify_totp_code(row[0], payload.code):
+            raise HTTPException(status_code=401, detail="Invalid 2FA code")
+
+        conn.execute(
+            "UPDATE users SET totp_enabled = TRUE WHERE id = %s",
+            (user["id"],),
+        )
+    return {"status": "enabled"}
+
+
+@router.post("/2fa/disable")
+def disable_totp(payload: TotpDisableRequest, user=Depends(get_current_user)):
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT totp_secret FROM users WHERE id = %s",
+            (user["id"],),
+        ).fetchone()
+        if not row or not row[0] or not verify_totp_code(row[0], payload.code):
+            raise HTTPException(status_code=401, detail="Invalid 2FA code")
+
+        conn.execute(
+            "UPDATE users SET totp_enabled = FALSE, totp_secret = NULL WHERE id = %s",
+            (user["id"],),
+        )
+    return {"status": "disabled"}
 
 
 @router.post("/otp/send")

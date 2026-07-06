@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from .analytics import router as analytics_router
 from .auth import router as auth_router
 from .brands import router as brands_router
 from .cart import router as cart_router
@@ -24,6 +25,8 @@ from .delivery import admin_router as admin_delivery_router
 from .delivery import branches_router
 from .delivery import router as delivery_router
 from .notifications import router as notifications_router
+from .reviews import actions_router as reviews_actions_router
+from .reviews import router as reviews_router
 from .returns import admin_router as admin_returns_router
 from .returns import admin_warranty_router as admin_warranty_router
 from .returns import router as returns_router
@@ -83,3 +86,6 @@ app.include_router(delivery_router, prefix="/api/v1")
 app.include_router(admin_delivery_router, prefix="/api/v1")
 app.include_router(branches_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api/v1")
+app.include_router(reviews_router, prefix="/api/v1")
+app.include_router(reviews_actions_router, prefix="/api/v1")
+app.include_router(analytics_router, prefix="/api/v1")
